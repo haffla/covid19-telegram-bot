@@ -14,7 +14,7 @@ Telegram::Bot::Client.run(ENV["TOKEN"], logger: Logger.new(STDOUT)) do |bot|
   bot.listen do |message|
     case message.text
     when "/start"
-      bot.api.send_message(chat_id: message.chat.id, text: "Moin, #{message.from.first_name}. Go /covid")
+      bot.api.send_message(chat_id: message.chat.id, text: "Moin, #{message.from.first_name}. Go /inf")
     when "/inf"
       bot.api.send_message(chat_id: message.chat.id, text: "Mom... #{FACE_WITH_MEDICAL_MASK}")
       total, berlin, nk, kb, pan = CovidStats.fetch

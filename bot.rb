@@ -19,7 +19,13 @@ Telegram::Bot::Client.run(ENV["TOKEN"], logger: Logger.new(STDOUT)) do |bot|
       bot.api.send_message(chat_id: message.chat.id, text: "Mom... #{FACE_WITH_MEDICAL_MASK}")
       total, berlin = CovidStats.fetch
       sleep 1
-      bot.api.send_message(chat_id: message.chat.id, text: "Deutschland: #{total}\r\nBerlin: #{berlin}")
+      text = <<~MD
+      <pre>
+        Deutschland | #{total}
+        Berlin      | #{berlin}
+      </pre>
+      MD
+      bot.api.send_message(chat_id: message.chat.id, text: text, parse_mode: "HTML")
       if [true, false].sample
         sleep 2
         bot.api.send_message(chat_id: message.chat.id, text: FACES_SICK.sample)

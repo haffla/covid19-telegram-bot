@@ -21,8 +21,8 @@ Telegram::Bot::Client.run(ENV["TOKEN"], logger: Logger.new(STDOUT)) do |bot|
       sleep 1
       text = <<~MD
       ```
-       Deutschland | #{total}
-       Berlin      | #{berlin}
+       Schland | #{total}
+       Berlin  | #{berlin}
       ```
       MD
       bot.api.send_message(chat_id: message.chat.id, text: text, parse_mode: "Markdown")

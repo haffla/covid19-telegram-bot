@@ -28,11 +28,11 @@ Telegram::Bot::Client.run(ENV['TOKEN'], logger: Logger.new(STDOUT)) do |bot|
       sleep 1
       text = <<~MD
         ```
-        Schland    | #{tl[:current].to_s.ljust(just, ' ')} | #{tl[:previous]} (#{tl[:increase]}%)
-        Berlin     | #{be[:current].to_s.ljust(just, ' ')} | #{be[:previous]} (#{be[:increase]}%)
-        Neukölln   | #{nk[:current].to_s.ljust(just, ' ')} | #{nk[:previous]} (#{nk[:increase]}%)
-        Kreuzberg  | #{kb[:current].to_s.ljust(just, ' ')} | #{kb[:previous]} (#{kb[:increase]}%)
-        Pankow     | #{pa[:current].to_s.ljust(just, ' ')} | #{pa[:previous]} (#{pa[:increase]}%)
+        Schland   | #{tl[:current].to_s.ljust(just, ' ')} | #{tl[:previous]} (#{tl[:increase]}%)
+        Berlin    | #{be[:current].to_s.ljust(just, ' ')} | #{be[:previous]} (#{be[:increase]}%)
+        Neukölln  | #{nk[:current].to_s.ljust(just, ' ')} | #{nk[:previous]} (#{nk[:increase]}%)
+        Kreuzberg | #{kb[:current].to_s.ljust(just, ' ')} | #{kb[:previous]} (#{kb[:increase]}%)
+        Pankow    | #{pa[:current].to_s.ljust(just, ' ')} | #{pa[:previous]} (#{pa[:increase]}%)
         ```
       MD
       bot.api.send_message(chat_id: message.chat.id, text: text, parse_mode: 'Markdown')

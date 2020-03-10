@@ -20,6 +20,7 @@ Telegram::Bot::Client.run(ENV['TOKEN'], logger: Logger.new(STDOUT)) do |bot|
     when '/start'
       bot.api.send_message(chat_id: message.chat.id, text: "Moin, #{message.from.first_name}. Go /inf")
     when '/inf'
+      redis.incr "called"
       bot.api.send_message(chat_id: message.chat.id, text: "Mom... #{FACE_WITH_MEDICAL_MASK}")
       stats = CovidStats.new(redis: redis).fetch
       just = stats.inject(0) { |current, (_k, v)| current > v[:current].to_s.size ? current : v[:current].to_s.size }

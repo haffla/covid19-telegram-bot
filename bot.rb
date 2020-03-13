@@ -28,6 +28,7 @@ class Bot
   def run!
     Telegram::Bot::Client.run(ENV["TOKEN"], logger: Logger.new(STDOUT)) do |bot|
       bot.listen do |message|
+        redis.sadd "clients", message.chat.id
         case message.text
         when "/start"
           redis.incr "installed"

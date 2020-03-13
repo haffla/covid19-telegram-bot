@@ -19,6 +19,7 @@ Telegram::Bot::Client.run(ENV["TOKEN"], logger: Logger.new(STDOUT)) do |bot|
   bot.listen do |message|
     case message.text
     when "/start"
+      redis.incr "installed"
       bot.api.send_message(chat_id: message.chat.id, text: "Moin, #{message.from.first_name}. Go /inf")
     when "/inf", "/trend"
       show_trend = message.text == "/trend"
@@ -27,7 +28,6 @@ Telegram::Bot::Client.run(ENV["TOKEN"], logger: Logger.new(STDOUT)) do |bot|
       sleep 0.5
       stats, last_updated = CovidRkiStats.new(redis: redis).fetch
       bot.api.send_message(chat_id: message.chat.id, text: "*#{last_updated}*", parse_mode: "Markdown")
-      sleep 0.5
 
       data = stats.map do |state, inf, inf_inc, dead, dead_inc|
         [
@@ -44,7 +44,9 @@ Telegram::Bot::Client.run(ENV["TOKEN"], logger: Logger.new(STDOUT)) do |bot|
         #{MdTable.make(data: data)}
         ```
       MD
+
       bot.api.send_message(chat_id: message.chat.id, text: text, parse_mode: "Markdown")
+
       if [true, false].sample
         sleep 2
         bot.api.send_message(chat_id: message.chat.id, text: FACES_SICK.sample)

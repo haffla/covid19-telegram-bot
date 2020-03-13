@@ -26,6 +26,8 @@ GEM
     nokogiri (1.10.9)
       mini_portile2 (~> 2.4.0)
     redis (4.1.3)
+    sentry-raven (3.0.0)
+      faraday (>= 1.0)
     telegram-bot-ruby (0.12.0)
       faraday
       inflecto
@@ -44,6 +46,7 @@ DEPENDENCIES
   httparty (~> 0.18.0)
   nokogiri (~> 1.10)
   redis (~> 4.1)
+  sentry-raven
   telegram-bot-ruby (~> 0.12.0)
 
 RUBY VERSION

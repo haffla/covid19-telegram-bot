@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
-require 'nokogiri'
-require 'httparty'
-require 'redis'
+require "nokogiri"
+require "httparty"
+require "redis"
 
 class CovidRkiStats
   attr_reader :redis
 
-  URL = 'https://www.rki.de/DE/Content/InfAZ/N/Neuartiges_Coronavirus/Fallzahlen.html'
+  URL = "https://www.rki.de/DE/Content/InfAZ/N/Neuartiges_Coronavirus/Fallzahlen.html"
 
   def initialize(redis:)
     @redis = redis
@@ -17,12 +17,12 @@ class CovidRkiStats
     doc = Nokogiri::HTML(HTTParty.get(URL))
     last_updated = doc.at('h2:contains("Fallzahlen in Deutschland")').next_element.text
 
-    data = doc.css('table tbody tr').map do |tr|
+    data = doc.css("table tbody tr").map do |tr|
       tr.children.first(2).map { |e| e.children.first.text }
     end.map do |k, v|
-      infected, dead = v.gsub('.', '').scan(/\d+/).map(&:to_i)
-      k = if k.include?('-')
-            k.split('-').map { |s| s[0] }.join('-')
+      infected, dead = v.gsub(".", "").scan(/\d+/).map(&:to_i)
+      k = if k.include?("-")
+            k.split("-").map { |s| s[0] }.join("-")
           else
             k[0..2]
           end
@@ -33,7 +33,7 @@ class CovidRkiStats
   end
 
   def with_comparison_to_previous(today, last_updated)
-    y_key = (Time.now - 3600 * 24).strftime('%y.%m.%d') + '_rki'
+    y_key = (Time.now - 3600 * 24).strftime("%y.%m.%d") + "_rki"
     # yesterday stats
     y_hist = redis.get(y_key).then do |h|
       if h.nil?

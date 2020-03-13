@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require 'httparty'
-require 'redis'
+require "httparty"
+require "redis"
 
 class CovidStats
   attr_reader :redis
@@ -11,21 +11,21 @@ class CovidStats
   end
 
   def fetch
-    HTTParty.get('https://raw.githubusercontent.com/iceweasel1/COVID-19-Germany/master/germany_with_source.csv').then do |resp|
+    HTTParty.get("https://raw.githubusercontent.com/iceweasel1/COVID-19-Germany/master/germany_with_source.csv").then do |resp|
       csv = CSV.parse(resp.body)
 
       with_comparison_to_previous(
         total: csv.size,
-        berlin: csv.sum { |row| row[2] == 'Berlin' ? 1 : 0 },
+        berlin: csv.sum { |row| row[2] == "Berlin" ? 1 : 0 },
         nk: csv.sum { |row| row[3].match?(/Neuköll?n/) ? 1 : 0 },
-        kb: csv.sum { |row| row[3] == 'Friedrichshain-Kreuzberg' ? 1 : 0 },
-        pan: csv.sum { |row| row[3] == 'Pankow' ? 1 : 0 }
+        kb: csv.sum { |row| row[3] == "Friedrichshain-Kreuzberg" ? 1 : 0 },
+        pan: csv.sum { |row| row[3] == "Pankow" ? 1 : 0 }
       )
     end
   end
 
   def with_comparison_to_previous(today_hist)
-    y_key = (Time.now - 3600 * 24).strftime('%y.%m.%d')
+    y_key = (Time.now - 3600 * 24).strftime("%y.%m.%d")
     # yesterday stats
     y_hist = redis.get(y_key).then do |h|
       if h.nil?
@@ -43,7 +43,7 @@ class CovidStats
         increase: (((current - previous) / previous.to_f) * 100).round(2)
       }
     end.then do |h|
-      key = Time.now.strftime('%y.%m.%d')
+      key = Time.now.strftime("%y.%m.%d")
       redis.set(key, today_hist.to_json)
 
       h

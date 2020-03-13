@@ -44,7 +44,9 @@ class CovidRkiStats
   end
 
   def with_comparison_to_previous(today, last_updated)
-    y_key = (Time.now - 3600 * 24).strftime("%y.%m.%d") + "_rki"
+    last_updated_ts = last_updated.scan(/\d+\.\d+\.\d+/).first
+    last_updated_ts = Date.parse(last_updated_ts).to_time
+    y_key = (last_updated_ts - 3600 * 24).strftime("%y.%m.%d") + "_rki"
     # yesterday stats
     y_hist = redis.get(y_key).then do |h|
       if h.nil?
@@ -65,6 +67,9 @@ class CovidRkiStats
       ]
     end
 
-    [res, last_updated]
+    [res, last_updated].then do |res|
+      redis.set(last_updated_ts.strftime("%y.%m.%d") + "_rki", today.to_json)
+      res
+    end
   end
 end

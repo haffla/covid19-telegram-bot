@@ -24,9 +24,10 @@ Telegram::Bot::Client.run(ENV["TOKEN"], logger: Logger.new(STDOUT)) do |bot|
       show_trend = message.text == "/trend"
       redis.incr "called"
       bot.api.send_message(chat_id: message.chat.id, text: "Mom... #{FACE_WITH_MEDICAL_MASK}")
-      sleep 1
+      sleep 0.5
       stats, last_updated = CovidRkiStats.new(redis: redis).fetch
-      bot.api.send_message(chat_id: message.chat.id, text: last_updated)
+      bot.api.send_message(chat_id: message.chat.id, text: "*#{last_updated}*", parse_mode: "Markdown")
+      sleep 0.5
 
       data = stats.map do |state, inf, inf_inc, dead, dead_inc|
         [

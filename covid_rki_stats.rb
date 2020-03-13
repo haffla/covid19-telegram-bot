@@ -13,18 +13,20 @@ class CovidRkiStats
     @redis = redis
   end
 
-  def fetch
+  def fetch(last_updated_only: false)
     body = redis.get("RKI_BODY").then do |r|
       if r.nil?
         b = HTTParty.get(URL).body
-        redis.set("RKI_BODY", b, ex: 3600)
+        redis.set("RKI_BODY", b, ex: 60 * 30)
         b
       else
         r
       end
     end
+
     doc = Nokogiri::HTML(body)
     last_updated = doc.at('h2:contains("Fallzahlen in Deutschland")').next_element.text
+    return last_updated if last_updated_only
 
     data = doc.css("table tbody tr").map do |tr|
       tr.children.first(2).map { |e| e.children.first.text }

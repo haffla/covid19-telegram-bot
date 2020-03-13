@@ -9,6 +9,10 @@ Raven.configure do |config|
   config.dsn = ENV["SENTRY_DSN"]
 end
 
+def to_utf8(c)
+  c.chr Encoding::UTF_8
+end
+
 class Bot
   attr_reader :redis
 
@@ -61,10 +65,6 @@ class Bot
         end
       end
     end
-  end
-
-  def to_utf8(c)
-    c.chr Encoding::UTF_8
   end
 end
 

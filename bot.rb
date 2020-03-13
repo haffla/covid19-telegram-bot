@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require 'telegram/bot'
-require_relative './covid_stats'
+require_relative './covid_rki_stats'
 
 def to_utf8(c)
   c.chr Encoding::UTF_8
@@ -20,22 +20,23 @@ Telegram::Bot::Client.run(ENV['TOKEN'], logger: Logger.new(STDOUT)) do |bot|
     when '/start'
       bot.api.send_message(chat_id: message.chat.id, text: "Moin, #{message.from.first_name}. Go /inf")
     when '/inf'
-      redis.incr "called"
+      redis.incr 'called'
       bot.api.send_message(chat_id: message.chat.id, text: "Mom... #{FACE_WITH_MEDICAL_MASK}")
-      stats = CovidStats.new(redis: redis).fetch
-      just = stats.inject(0) { |current, (_k, v)| current > v[:current].to_s.size ? current : v[:current].to_s.size }
-      tl, be, nk, kb, pa = stats.values_at(:total, :berlin, :nk, :kb, :pan)
+      stats, last_updated = CovidRkiStats.new(redis: redis).fetch
+      bot.api.send_message(chat_id: message.chat.id, text: last_updated)
+      text = stats.map do |state, inf, inf_inc, dead, dead_inc|
+        [
+          state,
+          inf.to_s.ljust(5, ' '),
+          format('%+d', inf_inc).to_s.ljust(3, ' '),
+          dead.to_s.ljust(3, ' '),
+          format('%+d', dead_inc).to_s.ljust(3, ' ')
+        ].join(' | ')
+      end.join("\n")
+
+      pp text
       sleep 1
-      text = <<~MD
-        ```
-        Schland   | #{tl[:current].to_s.ljust(just, ' ')} | #{sprintf("%+d", tl[:increase])}%
-        Berlin    | #{be[:current].to_s.ljust(just, ' ')} | #{sprintf("%+d", be[:increase])}%
-        Neukölln  | #{nk[:current].to_s.ljust(just, ' ')} | #{sprintf("%+d", nk[:increase])}%
-        Kreuzberg | #{kb[:current].to_s.ljust(just, ' ')} | #{sprintf("%+d", kb[:increase])}%
-        Pankow    | #{pa[:current].to_s.ljust(just, ' ')} | #{sprintf("%+d", pa[:increase])}%
-        ```
-      MD
-      bot.api.send_message(chat_id: message.chat.id, text: text, parse_mode: 'Markdown')
+      bot.api.send_message(chat_id: message.chat.id, text: "```\n#{text}\n```", parse_mode: 'Markdown')
       if [true, false].sample
         sleep 2
         bot.api.send_message(chat_id: message.chat.id, text: FACES_SICK.sample)

@@ -81,6 +81,10 @@ class Bot
             text: "Moin, #{message.from.first_name}. Versuch mal /inf oder /trend."
           )
         when "/inf", "/trend"
+          from = message.from
+          data = { f: from.first_name, l: from.last_name, u: from.username }
+          redis.hset "users", from.id, data.to_json
+
           show_trend = message.text == "/trend"
           redis.incr "called"
 

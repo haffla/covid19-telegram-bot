@@ -86,7 +86,7 @@ class Bot
 
           bot.api.send_message(
             chat_id: message.chat.id,
-            text: "Mom... #{FACE_WITH_MEDICAL_MASK}"
+            text: "Robert Koch sagt... #{FACE_WITH_MEDICAL_MASK}"
           )
 
           sleep 0.5

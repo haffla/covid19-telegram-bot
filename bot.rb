@@ -78,7 +78,7 @@ class Bot
           redis.incr "installed"
           bot.api.send_message(
             chat_id: message.chat.id,
-            text: "Moin, #{message.from.first_name}. Go /inf"
+            text: "Moin, #{message.from.first_name}. Versuch mal /inf oder /trend."
           )
         when "/inf", "/trend"
           show_trend = message.text == "/trend"

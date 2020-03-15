@@ -96,10 +96,11 @@ class Bot
 
           bot.api.send_message(
             chat_id: message.chat.id,
-            text: "*Last updated at #{last_updated} \n\nCountry | Confirmed | Deaths | Recovered*",
+            text: "*Last updated at #{last_updated} \nCountry | Confirmed | Deaths | Recovered*",
             parse_mode: "Markdown"
           )
 
+          sleep 0.7
           text = <<~MD
             ```
             #{MdTable.make(data: data)}

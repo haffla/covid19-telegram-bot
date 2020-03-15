@@ -52,7 +52,7 @@ class Bot
             clients.each do |client|
               bot.api.send_message(
                 chat_id: client,
-                text: "#{FACE_ROBOT} Das RKI hat neue Zahlen: /inf order /trend",
+                text: "#{FACE_ROBOT} Das RKI hat neue Zahlen: /inf oder /trend",
                 parse_mode: "Markdown"
               )
             end

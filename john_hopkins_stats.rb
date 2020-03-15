@@ -24,21 +24,21 @@ class JohnHopkinsStats
       Time.parse(d)
     end
 
-    data = process_csv(csv)
+    data = process_csv(csv[1..-1])
     [data, last_updated.strftime("%d/%m/%Y %H:%M GMT")]
   end
 
   private
 
   def process_csv(csv)
-    top = csv.select { |r| r[3].to_i >= 1_000 }.map do |prov, country, _, conf, dead, recov|
+    top = csv.group_by { |c| c[1] }.map do |country, c|
       [
-        [prov, country].compact.uniq.join("-"),
-        conf.to_i,
-        dead.to_i,
-        recov.to_i
+        country,
+        c.sum { |r| r[3].to_i }, # confirmed
+        c.sum { |r| r[4].to_i }, # deaths
+        c.sum { |r| r[5].to_i }  # recovered
       ]
-    end
+    end.first(15)
 
     totals = csv.each_with_object([0, 0, 0]) do |r, carry|
       carry[0] += r[3].to_i

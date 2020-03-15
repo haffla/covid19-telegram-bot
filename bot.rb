@@ -4,6 +4,7 @@ require "telegram/bot"
 require "raven"
 require "concurrent"
 require_relative "./covid_rki_stats"
+require_relative "./john_hopkins_stats"
 require_relative "./md_table"
 
 Raven.configure do |config|
@@ -20,7 +21,10 @@ class Bot
   FACE_WITH_MEDICAL_MASK = to_utf8(0x1F637)
   FACE_WITH_HEAD_BANDAGE = to_utf8(0x1F915)
   FACE_WITH_THERMOMETER = to_utf8(0x1F912)
+  FACE_NAUSEATED = to_utf8(0x1F922)
   FACE_ROBOT = to_utf8(0x1F916)
+  THUMBS_UP = to_utf8(0x1F44D)
+  FACE_SKULL = to_utf8(0x1F480)
   FACES_SICK = [FACE_WITH_HEAD_BANDAGE, FACE_WITH_THERMOMETER].freeze
 
   class Checker
@@ -33,15 +37,15 @@ class Bot
 
     def start_polling
       task = Concurrent::TimerTask
-        .new(execution_interval: 600, run_now: true) { poll }
+             .new(execution_interval: 600, run_now: true) { poll }
 
       task.execute
     end
 
     def poll
       last_updated = CovidRkiStats
-        .new(redis: redis)
-        .fetch(last_updated_only: true)
+                     .new(redis: redis)
+                     .fetch(last_updated_only: true)
 
       redis.get("rki_last_updated_at").then do |r|
         if r != last_updated
@@ -79,6 +83,33 @@ class Bot
           bot.api.send_message(
             chat_id: message.chat.id,
             text: "Moin, #{message.from.first_name}. Versuch mal /inf oder /trend."
+          )
+        when "/inter"
+          redis.incr "called"
+          bot.api.send_message(
+            chat_id: message.chat.id,
+            text: "John Hopkins says... #{FACE_NAUSEATED}"
+          )
+
+          sleep 0.5
+          data, last_updated = JohnHopkinsStats.new(redis: redis).fetch
+
+          bot.api.send_message(
+            chat_id: message.chat.id,
+            text: "*Last updated at #{last_updated} \n\nCountry | Confirmed | Deaths | Recovered*",
+            parse_mode: "Markdown"
+          )
+
+          text = <<~MD
+            ```
+            #{MdTable.make(data: data)}
+            ```
+          MD
+
+          bot.api.send_message(
+            chat_id: message.chat.id,
+            text: text,
+            parse_mode: "Markdown"
           )
         when "/inf", "/trend"
           from = message.from
@@ -138,4 +169,3 @@ class Bot
 end
 
 Raven.capture { Bot.new.run! }
-

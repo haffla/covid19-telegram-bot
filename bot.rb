@@ -15,6 +15,10 @@ def to_utf8(c)
   c.chr Encoding::UTF_8
 end
 
+def percent(val)
+  val.zero? ? "-" : format('%+d', val)
+end
+
 class Bot
   attr_reader :redis
 
@@ -109,9 +113,9 @@ class Bot
           data.map! do |country, con, con_inc, deaths, deaths_inc, rec, rec_inc|
             [
               country,
-              "#{con} #{format('%+d', con_inc)}%",
-              "#{deaths} #{format('%+d', deaths_inc)}%",
-              "#{rec} #{format('%+d', rec_inc)}%"
+              "#{con} #{percent(con_inc)}%",
+              "#{deaths} #{percent(deaths_inc)}%",
+              "#{rec} #{percent(rec_inc)}%"
             ]
           end
 
@@ -155,8 +159,8 @@ class Bot
               state,
               (inf unless show_trend),
               (dead unless show_trend),
-              ("#{inf} #{format('%+d', inf_inc)}%" if show_trend),
-              ("#{dead} #{format('%+d', dead_inc)}%" if show_trend)
+              ("#{inf} #{percent(inf_inc)}%" if show_trend),
+              ("#{dead} #{percent(dead_inc)}%" if show_trend)
             ].compact
           end
 

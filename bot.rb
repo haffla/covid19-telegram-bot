@@ -106,7 +106,7 @@ class Bot
 
           bot.api.send_message(
             chat_id: message.chat.id,
-            text: "*Last updated at #{last_updated} \nCountry | Confirmed | Deaths | Recovered*",
+            text: "*Last updated at #{last_updated} \nCountry | Confirmed | Deaths | Recovered\nPercentage: Compared to previous day*",
             parse_mode: "Markdown"
           )
 
@@ -148,9 +148,10 @@ class Bot
           sleep 0.5
           stats, last_updated = CovidRkiStats.new(redis: redis).fetch
 
+          percentage_explanation = "\nProzente: Vergleich zum Vortag" if show_trend
           bot.api.send_message(
             chat_id: message.chat.id,
-            text: "*#{last_updated}\nLand | Infizierte | Todesfälle*",
+            text: "*#{last_updated}\nLand | Infizierte | Todesfälle#{percentage_explanation}*",
             parse_mode: "Markdown"
           )
 

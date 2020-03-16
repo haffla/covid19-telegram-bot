@@ -146,7 +146,7 @@ class Bot
 
           bot.api.send_message(
             chat_id: message.chat.id,
-            text: "*#{last_updated}*",
+            text: "*#{last_updated}\nKlinisch bestätigte Fälle | Todesfälle*",
             parse_mode: "Markdown"
           )
 

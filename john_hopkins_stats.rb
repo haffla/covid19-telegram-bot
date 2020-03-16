@@ -38,7 +38,7 @@ class JohnHopkinsStats
         result,
         last_updated.strftime("%d/%m/%Y %H:%M GMT")
       ]
-    end
+    end.first(15)
   end
 
   private
@@ -54,7 +54,7 @@ class JohnHopkinsStats
         c.sum { |r| r[4].to_i }, # deaths
         c.sum { |r| r[5].to_i }  # recovered
       ]
-    end.first(15)
+    end
 
     totals = csv.each_with_object([0, 0, 0]) do |r, carry|
       carry[0] += r[3].to_i
@@ -75,7 +75,9 @@ class JohnHopkinsStats
     end.to_h { |country, confirmed, deaths, rec| [country, { confirmed: confirmed, deaths: deaths, rec: rec }] }
 
     current.map do |country, confirmed, deaths, rec|
-      p_con, p_deaths, p_rec = p_hist[country].values_at(:confirmed, :deaths, :rec)
+      p_con, p_deaths, p_rec = p_hist[country]&.values_at(:confirmed, :deaths, :rec)
+      next [country, confirmed, 0, deaths, 0, rec, 0] if p_con.nil?
+
       [
         country,
         confirmed,

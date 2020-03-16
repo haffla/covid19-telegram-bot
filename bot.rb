@@ -84,6 +84,13 @@ class Bot
             chat_id: message.chat.id,
             text: "Moin, #{message.from.first_name}. Versuch mal /inf oder /trend."
           )
+
+          sleep 1
+
+          bot.api.send_message(
+            chat_id: message.chat.id,
+            text: "/inter for international stats."
+          )
         when /^\/inter/
           redis.incr "called"
           bot.api.send_message(

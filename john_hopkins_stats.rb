@@ -33,7 +33,7 @@ class JohnHopkinsStats
 
     p_key = (last_updated - 3600 * 24).strftime("%y.%m.%d") + "_ju"
     with_comparison_to_previous(data, redis.get(p_key)).then do |result|
-      redis.set(last_updated.strftime("%y.%m.%d") + "_ju", data.to_json)
+      redis.set(time.strftime("%y.%m.%d") + "_ju", data.to_json)
       [
         result,
         last_updated.strftime("%d/%m/%Y %H:%M GMT")

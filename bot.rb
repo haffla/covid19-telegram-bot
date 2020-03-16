@@ -100,6 +100,15 @@ class Bot
             parse_mode: "Markdown"
           )
 
+          data.map! do |country, con, con_inc, deaths, deaths_inc, rec, rec_inc|
+            [
+              country,
+              "#{con} #{format('%+d', con_inc)}%",
+              "#{deaths} #{format('%+d', deaths_inc)}%",
+              "#{rec} #{format('%+d', rec_inc)}%"
+            ]
+          end
+
           sleep 0.7
           text = <<~MD
             ```

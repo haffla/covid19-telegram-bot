@@ -27,13 +27,19 @@ class JohnHopkinsStats
     )
 
     last_updated = commits.first["commit"]["committer"]["date"].then do |d|
-      Time.parse(d).strftime("%d/%m/%Y %H:%M GMT")
+      Time.parse(d)
     end
 
-    [
-      process_csv(csv[1..-1]),
-      last_updated
-    ]
+    data = process_csv(csv[1..-1])
+
+    p_key = (last_updated - 3600 * 24).strftime("%y.%m.%d") + "_ju"
+    with_comparison_to_previous(data, redis.get(p_key)).then do |result|
+      redis.set(last_updated.strftime("%y.%m.%d") + "_ju", data.to_json)
+      [
+        result,
+        last_updated.strftime("%d/%m/%Y %H:%M GMT")
+      ]
+    end
   end
 
   private
@@ -58,6 +64,29 @@ class JohnHopkinsStats
     end
 
     top << (["Earth"] + totals)
+  end
+
+  def with_comparison_to_previous(current, previous)
+    p_hist = previous.then do |h|
+      if h.nil?
+        current
+      else
+        JSON.parse(h).map { |country, confirmed, deaths, rec| [country, confirmed.to_i, deaths.to_i, rec.to_i] }
+      end
+    end.to_h { |country, confirmed, deaths, rec| [country, { confirmed: confirmed, deaths: deaths, rec: rec }] }
+
+    current.map do |country, confirmed, deaths, rec|
+      p_con, p_deaths, p_rec = p_hist[country].values_at(:confirmed, :deaths, :rec)
+      [
+        country,
+        confirmed,
+        (((confirmed - p_con) / p_con.to_f) * 100).round(2),
+        deaths,
+        (((deaths - p_deaths) / p_deaths.to_f) * 100).round(2),
+        rec,
+        (((rec - p_rec) / p_rec.to_f) * 100).round(2)
+      ]
+    end
   end
 
   def source_url(time)

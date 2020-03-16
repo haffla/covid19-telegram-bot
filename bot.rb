@@ -76,7 +76,6 @@ class Bot
       checker.start_polling
 
       bot.listen do |message|
-        redis.sadd "clients", message.chat.id
         case message.text
         when /^\/start/
           redis.incr "installed"
@@ -129,6 +128,7 @@ class Bot
             parse_mode: "Markdown"
           )
         when /^\/inf/, /^\/trend/
+          redis.sadd "clients", message.chat.id
           from = message.from
           data = { f: from.first_name, l: from.last_name, u: from.username }
           redis.hset "users", from.id, data.to_json

@@ -10,8 +10,7 @@ class JohnHopkinsStats
     @redis = redis
   end
 
-  def fetch
-    time = Time.now.utc
+  def fetch(time: Time.now.utc)
     resp = HTTParty.get(source_url(time))
     if resp.code == 404
       time -= 3600 * 24

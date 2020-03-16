@@ -16,7 +16,7 @@ def to_utf8(c)
 end
 
 def percent(val)
-  val.zero? ? "-" : format('%+d', val)
+  val.zero? ? "-" : "#{format('%+d', val)}%"
 end
 
 class Bot
@@ -113,9 +113,9 @@ class Bot
           data.map! do |country, con, con_inc, deaths, deaths_inc, rec, rec_inc|
             [
               country,
-              "#{con} #{percent(con_inc)}%",
-              "#{deaths} #{percent(deaths_inc)}%",
-              "#{rec} #{percent(rec_inc)}%"
+              "#{con} #{percent(con_inc)}",
+              "#{deaths} #{percent(deaths_inc)}",
+              "#{rec} #{percent(rec_inc)}"
             ]
           end
 
@@ -159,8 +159,8 @@ class Bot
               state,
               (inf unless show_trend),
               (dead unless show_trend),
-              ("#{inf} #{percent(inf_inc)}%" if show_trend),
-              ("#{dead} #{percent(dead_inc)}%" if show_trend)
+              ("#{inf} #{percent(inf_inc)}" if show_trend),
+              ("#{dead} #{percent(dead_inc)}" if show_trend)
             ].compact
           end
 

@@ -146,10 +146,10 @@ class Bot
           data = stats.map do |state, inf, inf_inc, dead, dead_inc|
             [
               state,
-              inf,
-              ("#{format('%+d', inf_inc)}%" if show_trend),
-              dead,
-              ("#{format('%+d', dead_inc)}%" if show_trend)
+              (inf unless show_trend),
+              (dead unless show_trend),
+              ("#{inf} #{format('%+d', inf_inc)}%" if show_trend),
+              ("#{dead} #{format('%+d', dead_inc)}%" if show_trend)
             ].compact
           end
 

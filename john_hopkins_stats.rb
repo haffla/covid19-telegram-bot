@@ -31,7 +31,7 @@ class JohnHopkinsStats
 
     data = process_csv(csv[1..-1])
 
-    p_key = (last_updated - 3600 * 24).strftime("%y.%m.%d") + "_ju"
+    p_key = (time - 3600 * 24).strftime("%y.%m.%d") + "_ju"
     with_comparison_to_previous(data, redis.get(p_key)).then do |result|
       redis.set(time.strftime("%y.%m.%d") + "_ju", data.to_json)
       [

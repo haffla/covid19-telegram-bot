@@ -12,7 +12,7 @@ class JohnHopkinsStats
 
   def fetch(time: Time.now.utc)
     resp = HTTParty.get(source_url(time))
-    if resp.code == 404
+    while resp.code == 404 do
       time -= 3600 * 24
       resp = HTTParty.get(source_url(time))
     end

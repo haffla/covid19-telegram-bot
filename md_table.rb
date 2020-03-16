@@ -8,7 +8,18 @@ class MdTable
 
     data.map do |row|
       row.each_with_index.map do |c, i|
-        c.to_s.ljust(justs[i], " ")
+        c = c.to_s.strip
+        m = c.scan(/\S+/)
+        if m.size == 2
+          # if we have exactly 2, left align the left part
+          # and right align the right part
+          l = m[0].ljust(justs[i], " ").reverse
+          r = m[1].rjust(justs[i], " ").reverse
+
+          l.gsub(/\s/).with_index { |_, i| r[i] }.reverse
+        else
+          c.ljust(justs[i], " ")
+        end
       end.join(" | ")
     end.join("\n")
   end

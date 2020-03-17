@@ -62,7 +62,7 @@ class JohnHopkinsStats
       carry[2] += r[5].to_i
     end
 
-    top << (["Earth"] + totals)
+    top << (["All"] + totals)
   end
 
   def with_comparison_to_previous(current, previous)

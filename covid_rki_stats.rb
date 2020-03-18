@@ -33,7 +33,6 @@ class CovidRkiStats
     end.map do |state, inf, _, _, deaths|
       infected = inf.gsub(".", "").to_i
       deaths = deaths.gsub(".", "").to_i
-      pp deaths
       state = if state.include?("-")
                 state.split("-").map { |s| s[0] }.join("-")
               else

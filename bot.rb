@@ -186,7 +186,15 @@ class Bot
               text: "Die Zeit sagt... #{FACE_WITH_MEDICAL_MASK}"
             )
 
-            data, last_updated = ZeitStats.new.fetch
+            data, last_updated = ZeitStats.new(redis: redis).fetch
+            data.map! do |country, con, con_inc, deaths, deaths_inc, rec, rec_inc|
+              [
+                country,
+                "#{con} #{percent(con_inc)}",
+                "#{deaths} #{percent(deaths_inc)}",
+                "#{rec} #{percent(rec_inc)}"
+              ]
+            end
 
             bot.api.send_message(
               chat_id: message.chat.id,

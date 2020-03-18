@@ -25,7 +25,9 @@ end
 COMMANDS = [
   ["rki", "Stats vom Robert Koch Institut (Deutschland)"],
   ["jhu", "Stats from John Hopkins University"],
-  ["zeit", "Stats from zeit.de"]
+  ["zeit", "Stats from zeit.de (Deutschland)"],
+  ["sub", "Subscribe to source updates"],
+  ["unsub", "Unsubscribe from source updates"]
 ].freeze
 
 class Bot
@@ -64,7 +66,7 @@ class Bot
             bot.api.send_message(chat_id: message.from.id, text: "I hate to see you go... RKI will not bother you anymore.")
           when "unsub_zeit"
             redis.srem "zeit_clients", message.from.id
-            bot.api.send_message(chat_id: message.from.id, text: "Die Zeit vergeht. You will not receive any updates anymore. Ciao!")
+            bot.api.send_message(chat_id: message.from.id, text: "Die Zeit vergeht. You will not receive any more updates. Ciao!")
           end
         else
           case message.text

@@ -163,8 +163,6 @@ class Bot
           data = stats.map do |state, inf, inf_inc, dead, dead_inc|
             [
               state,
-              inf,
-              dead,
               "#{inf} #{percent(inf_inc)}",
               "#{dead} #{percent(dead_inc)}"
             ].compact

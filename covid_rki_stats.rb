@@ -29,15 +29,17 @@ class CovidRkiStats
     return last_updated if last_updated_only
 
     today = doc.css("table tbody tr").map do |tr|
-      tr.children.first(2).map { |e| e.children.first.text }
-    end.map do |k, v|
-      infected, dead = v.gsub(".", "").scan(/\d+/).map(&:to_i)
-      k = if k.include?("-")
-            k.split("-").map { |s| s[0] }.join("-")
-          else
-            k[0..2]
+      tr.children.first(5).map { |e| e.children.first.text }
+    end.map do |state, inf, _, _, deaths|
+      infected = inf.gsub(".", "").to_i
+      deaths = deaths.gsub(".", "").to_i
+      pp deaths
+      state = if state.include?("-")
+                state.split("-").map { |s| s[0] }.join("-")
+              else
+                state[0..2]
           end
-      [k, infected, dead || 0]
+      [state, infected, deaths]
     end
 
     last_updated_ts = last_updated.scan(/\d+\.\d+\.\d+/).first

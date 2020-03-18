@@ -3,6 +3,7 @@
 require "telegram/bot"
 require "raven"
 require "concurrent"
+require "ruby_cowsay"
 require_relative "./covid_rki_stats"
 require_relative "./john_hopkins_stats"
 require_relative "./md_table"
@@ -18,6 +19,11 @@ end
 def percent(val)
   val.zero? ? "-" : "#{format('%+d', val)}%"
 end
+
+COMMANDS = [
+  ["inf", "Stats vom Robert Koch Institut (Deutschland)"],
+  ["inter", "Stats from John Hopkins University"],
+]
 
 class Bot
   attr_reader :redis
@@ -60,7 +66,7 @@ class Bot
             clients.each do |client|
               bot.api.send_message(
                 chat_id: client,
-                text: "#{FACE_ROBOT} Das RKI hat neue Zahlen: /inf oder /trend",
+                text: "#{FACE_ROBOT} Das RKI hat neue Zahlen: /inf",
                 parse_mode: "Markdown"
               )
             end
@@ -85,7 +91,7 @@ class Bot
           redis.incr "installed"
           bot.api.send_message(
             chat_id: message.chat.id,
-            text: "Moin, #{message.from.first_name}. Versuch mal /inf oder /trend."
+            text: "Moin, #{message.from.first_name}. Versuch mal /inf oder /inter."
           )
 
           sleep 1
@@ -131,13 +137,12 @@ class Bot
             text: text,
             parse_mode: "Markdown"
           )
-        when /^\/inf/, /^\/trend/
+        when /^\/inf/
           redis.sadd "clients", message.chat.id
           from = message.from
           data = { f: from.first_name, l: from.last_name, u: from.username }
           redis.hset "users", from.id, data.to_json
 
-          show_trend = message.text.match?(/^\/trend/)
           redis.incr "called"
 
           bot.api.send_message(
@@ -148,7 +153,7 @@ class Bot
           sleep 0.5
           stats, last_updated = CovidRkiStats.new(redis: redis).fetch
 
-          percentage_explanation = "\nProzente: Vergleich zum Vortag" if show_trend
+          percentage_explanation = "\nProzente: Vergleich zum Vortag"
           bot.api.send_message(
             chat_id: message.chat.id,
             text: "*#{last_updated}\nLand | Infizierte | Todesfälle#{percentage_explanation}*",
@@ -158,10 +163,10 @@ class Bot
           data = stats.map do |state, inf, inf_inc, dead, dead_inc|
             [
               state,
-              (inf unless show_trend),
-              (dead unless show_trend),
-              ("#{inf} #{percent(inf_inc)}" if show_trend),
-              ("#{dead} #{percent(dead_inc)}" if show_trend)
+              inf,
+              dead,
+              "#{inf} #{percent(inf_inc)}",
+              "#{dead} #{percent(dead_inc)}"
             ].compact
           end
 
@@ -184,6 +189,38 @@ class Bot
               text: FACES_SICK.sample
             )
           end
+        else
+          text = <<~MD
+            ```
+            #{Cow.new(face_type: "paranoid").say("Wuut?")}
+            ```
+          MD
+
+          bot.api.send_message(
+            chat_id: message.chat.id,
+            text: text,
+            parse_mode: "Markdown"
+          )
+
+          sleep 0.7
+
+          text = message.text.gsub('_', '-')
+          text = if text.size > 20
+                   text[0..20] + "..."
+                 else
+                   text
+                 end
+
+          bot.api.send_message(
+            chat_id: message.chat.id,
+            text: "_#{message}_\n\nNo hablo eso!",
+            parse_mode: "Markdown"
+          )
+
+          bot.api.send_message(
+            chat_id: message.chat.id,
+            text: COMMANDS.map { |c| "/#{c[0]} - #{c[1]}" }.join("\n")
+          )
         end
       end
     end

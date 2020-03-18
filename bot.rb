@@ -27,7 +27,8 @@ COMMANDS = [
   ["jhu", "Stats from John Hopkins University"],
   ["zeit", "Stats from zeit.de (Deutschland)"],
   ["sub", "Subscribe to source updates"],
-  ["unsub", "Unsubscribe from source updates"]
+  ["unsub", "Unsubscribe from source updates"],
+  ["pref", "Edit preferences"]
 ].freeze
 
 class Bot
@@ -67,8 +68,17 @@ class Bot
           when "unsub_zeit"
             redis.srem "zeit_clients", message.from.id
             bot.api.send_message(chat_id: message.from.id, text: "Die Zeit vergeht. You will not receive any more updates. Ciao!")
+          when "disable_recovered"
+            settings = redis.hget("settings", message.from.id).then { |h| h.nil? ? {} : JSON.parse(h) }
+            redis.hset("settings", message.from.id, settings.merge("recovered_disabled" => true).to_json)
+            bot.api.send_message(chat_id: message.from.id, text: "Done!")
+          when "enable_recovered"
+            settings = redis.hget("settings", message.from.id).then { |h| h.nil? ? {} : JSON.parse(h) }
+            redis.hset("settings", message.from.id, settings.merge("recovered_disabled" => false).to_json)
+            bot.api.send_message(chat_id: message.from.id, text: "Done!")
           end
         else
+          recovered_disabled = redis.hget("settings", message.chat.id).then { |h| h.nil? ? {} : JSON.parse(h) }.then { |h| h["recovered_disabled"] }
           case message.text
           when %r{^/start}
             redis.incr "installed"
@@ -102,10 +112,11 @@ class Bot
 
             sleep 0.5
             data, last_updated = JohnHopkinsStats.new(redis: redis).fetch
-
+            labels = ["Country", "Confirmed", "Deaths"]
+            labels << "Recovered" unless recovered_disabled
             bot.api.send_message(
               chat_id: message.chat.id,
-              text: "*Last updated at #{last_updated} \nCountry | Confirmed | Deaths | Recovered\nPercentage: Compared to previous day*",
+              text: "*Last updated at #{last_updated} \n#{labels.join(' | ')}\nPercentage: Compared to previous day*",
               parse_mode: "Markdown"
             )
 
@@ -114,8 +125,8 @@ class Bot
                 country,
                 "#{con} #{percent(con_inc)}",
                 "#{deaths} #{percent(deaths_inc)}",
-                "#{rec} #{percent(rec_inc)}"
-              ]
+                ("#{rec} #{percent(rec_inc)}" unless recovered_disabled)
+              ].compact!
             end
 
             sleep 0.7
@@ -179,7 +190,7 @@ class Bot
                 text: FACES_SICK.sample
               )
             end
-          when %r{/zeit}
+          when %r{^/zeit}
             redis.incr "called"
             bot.api.send_message(
               chat_id: message.chat.id,
@@ -192,13 +203,15 @@ class Bot
                 country,
                 "#{con} #{percent(con_inc)}",
                 "#{deaths} #{percent(deaths_inc)}",
-                "#{rec} #{percent(rec_inc)}"
-              ]
+                ("#{rec} #{percent(rec_inc)}" unless recovered_disabled)
+              ].compact!
             end
 
+            labels = ["Land", "Infizierte", "Todesfälle"]
+            labels << "Genesene" unless recovered_disabled
             bot.api.send_message(
               chat_id: message.chat.id,
-              text: "*#{last_updated}\nLand | Infizierte | Todesfälle | Genesene*",
+              text: "*#{last_updated}\n#{labels.join(' | ')}*",
               parse_mode: "Markdown"
             )
 
@@ -215,20 +228,29 @@ class Bot
               text: text,
               parse_mode: "Markdown"
             )
-          when %r{/sub}
+          when %r{^/sub}
             kb = [
               Telegram::Bot::Types::InlineKeyboardButton.new(text: "Robert Koch", callback_data: "sub_rki"),
               Telegram::Bot::Types::InlineKeyboardButton.new(text: "Die Zeit", callback_data: "sub_zeit")
             ]
             markup = Telegram::Bot::Types::InlineKeyboardMarkup.new(inline_keyboard: kb)
             bot.api.send_message(chat_id: message.chat.id, text: "Which stats do you want to get updates for?", reply_markup: markup)
-          when %r{/unsub}
+          when %r{^/unsub}
             kb = [
               Telegram::Bot::Types::InlineKeyboardButton.new(text: "Robert Koch", callback_data: "unsub_rki"),
               Telegram::Bot::Types::InlineKeyboardButton.new(text: "Die Zeit", callback_data: "unsub_zeit")
             ]
             markup = Telegram::Bot::Types::InlineKeyboardMarkup.new(inline_keyboard: kb)
             bot.api.send_message(chat_id: message.chat.id, text: "Alright. Which source do you want to stop receiving updates from?", reply_markup: markup)
+          when %r{^/pref}
+            recovered_disabled = redis.hget("settings", message.chat.id).then { |h| h.nil? ? {} : JSON.parse(h) }.then { |h| h["recovered_disabled"] }
+            kb = if recovered_disabled
+                   [Telegram::Bot::Types::InlineKeyboardButton.new(text: "Enable the 'recovered' column", callback_data: "enable_recovered")]
+                 else
+                   [Telegram::Bot::Types::InlineKeyboardButton.new(text: "Disable the 'recovered' column (great for small devices)", callback_data: "disable_recovered")]
+                 end
+            markup = Telegram::Bot::Types::InlineKeyboardMarkup.new(inline_keyboard: kb)
+            bot.api.send_message(chat_id: message.chat.id, text: "What do you want to do?", reply_markup: markup)
           else
             text = <<~MD
               ```

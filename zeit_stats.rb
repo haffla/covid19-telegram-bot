@@ -12,7 +12,7 @@ class ZeitStats
     "Mai" => "May",
     "Oktober" => "October",
     "Dezember" => "December"
-  }
+  }.freeze
 
   def fetch(last_updated_only: false)
     resp = HTTParty.get("https://interactive.zeit.de/cronjobs/2020/corona/data.json")
@@ -30,14 +30,12 @@ class ZeitStats
       [state, infected, deaths, recovered]
     end
 
-    pp last_updated
     last_updated_ts = parse_date(last_updated)
     t_inf, t_deaths, t_rec = json["totals"].values_at("count", "dead", "recovered")
     states << ["Ges", t_inf, t_deaths, t_rec]
     y_key = (last_updated_ts - 3600 * 24).strftime("%d.%m.%y") + "_zeit"
     with_comparison_to_previous(states, redis.get(y_key)).then do |res|
       k = last_updated_ts.strftime("%d.%m.%y") + "_zeit"
-      pp k
       redis.set(k, states.to_json)
       [res, last_updated]
     end

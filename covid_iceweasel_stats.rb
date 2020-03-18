@@ -1,9 +1,11 @@
 # frozen_string_literal: true
+#
+# DEPRECATED. Source is not maintained anymore.
 
 require "httparty"
 require "redis"
 
-class CovidStats
+class CovidIceweaselStats
   attr_reader :redis
 
   def initialize(redis:)

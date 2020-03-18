@@ -26,7 +26,7 @@ COMMANDS = [
   ["rki", "Stats vom Robert Koch Institut (Deutschland)"],
   ["jhu", "Stats from John Hopkins University"],
   ["zeit", "Stats from zeit.de"]
-]
+].freeze
 
 class Bot
   attr_reader :redis
@@ -68,7 +68,7 @@ class Bot
           end
         else
           case message.text
-          when /^\/start/
+          when %r{^/start}
             redis.incr "installed"
             bot.api.send_message(
               chat_id: message.chat.id,
@@ -91,7 +91,7 @@ class Bot
               chat_id: message.chat.id,
               text: "Oh and... I subscribed you to updates of RKI and Die Zeit. So whenever they update their data I will let you know. /unsub if you don't want that."
             )
-          when /^\/jhu/
+          when %r{^/jhu}
             redis.incr "called"
             bot.api.send_message(
               chat_id: message.chat.id,
@@ -128,7 +128,7 @@ class Bot
               text: text,
               parse_mode: "Markdown"
             )
-          when /^\/rki/
+          when %r{^/rki}
             from = message.from
             data = { f: from.first_name, l: from.last_name, u: from.username }
             redis.hset "users", from.id, data.to_json
@@ -177,7 +177,7 @@ class Bot
                 text: FACES_SICK.sample
               )
             end
-          when /\/zeit/
+          when %r{/zeit}
             redis.incr "called"
             bot.api.send_message(
               chat_id: message.chat.id,
@@ -205,14 +205,14 @@ class Bot
               text: text,
               parse_mode: "Markdown"
             )
-          when /\/sub/
+          when %r{/sub}
             kb = [
               Telegram::Bot::Types::InlineKeyboardButton.new(text: "Robert Koch", callback_data: "sub_rki"),
               Telegram::Bot::Types::InlineKeyboardButton.new(text: "Die Zeit", callback_data: "sub_zeit")
             ]
             markup = Telegram::Bot::Types::InlineKeyboardMarkup.new(inline_keyboard: kb)
             bot.api.send_message(chat_id: message.chat.id, text: "Which stats do you want to get updates for?", reply_markup: markup)
-          when /\/unsub/
+          when %r{/unsub}
             kb = [
               Telegram::Bot::Types::InlineKeyboardButton.new(text: "Robert Koch", callback_data: "unsub_rki"),
               Telegram::Bot::Types::InlineKeyboardButton.new(text: "Die Zeit", callback_data: "unsub_zeit")
@@ -222,7 +222,7 @@ class Bot
           else
             text = <<~MD
               ```
-              #{Cow.new(face_type: "paranoid").say("Wuut?")}
+              #{Cow.new(face_type: 'paranoid').say('Wuut?')}
               ```
             MD
 
@@ -234,7 +234,7 @@ class Bot
 
             sleep 0.7
 
-            text = message.text.gsub('_', '-')
+            text = message.text.gsub("_", "-")
             text = if text.size > 20
                      text[0..20] + "..."
                    else

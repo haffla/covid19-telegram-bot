@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 #
 # DEPRECATED. Source is not maintained anymore.
 

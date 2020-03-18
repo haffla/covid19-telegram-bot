@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Poller
   attr_reader :redis, :bot
 
@@ -56,4 +58,3 @@ class Poller
     end
   end
 end
-

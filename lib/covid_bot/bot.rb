@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module CovidBot
   class Bot
     attr_reader :redis
@@ -45,7 +47,7 @@ module CovidBot
               if message.left_chat_member
                 redis.srem("clients", message.chat.id)
                 redis.srem("zeit_clients", message.chat.id)
-              elsif message.new_chat_members && message.new_chat_members.size > 0
+              elsif message.new_chat_members && !message.new_chat_members.empty?
                 bot.api.send_message(chat_id: message.chat.id, text: "Hi I'm Covid Watch!")
                 bot.api.send_message(
                   chat_id: message.chat.id,
@@ -79,7 +81,7 @@ module CovidBot
               )
 
               data, last_updated = JohnHopkinsStats.new(redis: redis).fetch
-              labels = ["Country", "Confirmed", "Deaths"]
+              labels = %w[Country Confirmed Deaths]
               labels << "Recovered" unless recovered_disabled
               bot.api.send_message(
                 chat_id: message.chat.id,
@@ -180,7 +182,7 @@ module CovidBot
                 ].compact
               end
 
-              labels = ["Land", "Infizierte", "Todesfälle"]
+              labels = %w[Land Infizierte Todesfälle]
               labels << "Genesene" unless recovered_disabled
               bot.api.send_message(
                 chat_id: message.chat.id,

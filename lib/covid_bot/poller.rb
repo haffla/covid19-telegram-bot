@@ -50,15 +50,13 @@ module CovidBot
             yield if block_given?
             clients = redis.smembers(clients_key)
             clients.each do |client|
-              begin
-                bot.api.send_message(
-                  chat_id: client,
-                  text: message,
-                  parse_mode: "Markdown"
-                )
-              rescue
-                redis.srem(clients_key, client)
-              end
+              bot.api.send_message(
+                chat_id: client,
+                text: message,
+                parse_mode: "Markdown"
+              )
+            rescue StandardError
+              redis.srem(clients_key, client)
             end
           end
         end

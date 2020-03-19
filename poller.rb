@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 require_relative "./utils"
+require_relative "./zeit_stats"
+require_relative "./covid_rki_stats"
 
 class Poller
   attr_reader :redis, :bot
@@ -27,35 +29,39 @@ class Poller
     instance = CovidRkiStats.new(redis: redis)
     redis_key = "rki_last_updated_at"
     message = "#{FACE_ROBOT} Das RKI hat neue Zahlen: /rki. Nervt? /unsub"
-    do_poll(instance, redis_key, message) do
+    clients_key = "clients"
+    do_poll(instance, redis_key, message, clients_key) do
       redis.del("RKI_BODY")
-      redis.smembers("clients") || []
     end
   end
 
   def poll_zeit
-    instance = ZeitStats.new
+    instance = ZeitStats.new(redis: redis)
     redis_key = "zeit_last_updated_at"
     message = "#{FACE_ROBOT} Die Zeit hat neue Zahlen: /zeit. Nervt? /unsub"
-    do_poll(instance, redis_key, message) do
-      redis.smembers("zeit_clients") || []
-    end
+    clients_key = "zeit_clients"
+    do_poll(instance, redis_key, message, clients_key)
   end
 
-  def do_poll(instance, redis_key, message)
+  def do_poll(instance, redis_key, message, clients_key)
     last_updated = instance.fetch(last_updated_only: true)
 
     redis.get(redis_key).then do |r|
       if r != last_updated
         redis.set(redis_key, last_updated)
         unless r.nil?
-          clients = yield
+          yield if block_given?
+          clients = redis.smembers(clients_key)
           clients.each do |client|
-            bot.api.send_message(
-              chat_id: client,
-              text: message,
-              parse_mode: "Markdown"
-            )
+            begin
+              bot.api.send_message(
+                chat_id: client,
+                text: message,
+                parse_mode: "Markdown"
+              )
+            rescue
+              redis.srem(clients_key, client)
+            end
           end
         end
       end

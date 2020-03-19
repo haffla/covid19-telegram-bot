@@ -77,12 +77,19 @@ class Bot
           end
         when Telegram::Bot::Types::Message
           recovered_disabled = redis.hget("settings", message.chat.id).then { |h| h.nil? ? {} : JSON.parse(h) }.then { |h| h["recovered_disabled"] }
+
           case message.text
-          when nil
-            # pp message
-            # if message.new_chat_members
-            #   bot.api.send_message(chat_id: message.chat.id, text: "Hi I'm Covid Watch!")
-            # end
+          when nil # apparently this is what happens when a bot is added/removed to a group chat
+            if message.left_chat_member
+              redis.srem("clients", message.chat.id)
+              redis.srem("zeit_clients", message.chat.id)
+            elsif message.new_chat_members && message.new_chat_members.size > 0
+              bot.api.send_message(chat_id: message.chat.id, text: "Hi I'm Covid Watch!")
+              bot.api.send_message(
+                chat_id: message.chat.id,
+                text: COMMANDS.map { |c| "/#{c[0]} - #{c[1]}" }.join("\n")
+              )
+            end
           when %r{^/start}
             redis.incr "installed"
             bot.api.send_message(

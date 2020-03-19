@@ -2,12 +2,8 @@
 
 module CovidBot
   module Source
-    class DieZeit
+    class DieZeit < Base
       attr_reader :redis
-
-      def initialize(redis:)
-        @redis = redis
-      end
 
       MONTHS = {
         "März" => "March",
@@ -46,29 +42,6 @@ module CovidBot
       def parse_date(s)
         s = s.gsub(Regexp.union(MONTHS.keys), MONTHS)
         Date.parse(s).to_time
-      end
-
-      def with_comparison_to_previous(today, yesterday)
-        y_hist = yesterday.then do |h|
-          if h.nil?
-            today
-          else
-            JSON.parse(h).map { |state, infected, dead, recovered| [state, infected.to_i, dead.to_i, recovered.to_i] }
-          end
-        end.to_h { |state, infected, dead, recovered| [state, { infected: infected, dead: dead, recovered: recovered }] }
-
-        today.map do |state, infected, dead, recovered|
-          y_infected, y_dead, y_recovered = y_hist[state].values_at(:infected, :dead, :recovered)
-          [
-            state,
-            infected.then { |x| x >= 10_000 ? SI.convert(x) : x },
-            (((infected - y_infected) / y_infected.to_f) * 100).round(2),
-            dead.then { |x| x >= 10_000 ? SI.convert(x) : x },
-            y_dead.zero? ? 0 : (((dead - y_dead) / y_dead.to_f) * 100).round(2),
-            recovered.then { |x| x >= 10_000 ? SI.convert(x) : x },
-            y_recovered.zero? ? 0 : (((recovered - y_recovered) / y_recovered.to_f) * 100).round(2)
-          ]
-        end
       end
     end
   end

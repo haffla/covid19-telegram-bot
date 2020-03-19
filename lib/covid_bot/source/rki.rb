@@ -2,14 +2,10 @@
 
 module CovidBot
   module Source
-    class Rki
+    class Rki < Base
       attr_reader :redis
 
       URL = "https://www.rki.de/DE/Content/InfAZ/N/Neuartiges_Coronavirus/Fallzahlen.html"
-
-      def initialize(redis:)
-        @redis = redis
-      end
 
       def fetch(last_updated_only: false)
         body = redis.get("RKI_BODY").then do |r|
@@ -46,27 +42,6 @@ module CovidBot
         with_comparison_to_previous(today, redis.get(y_key)).then do |result|
           redis.set(last_updated_ts.strftime("%y.%m.%d") + "_rki", today.to_json)
           [result, last_updated]
-        end
-      end
-
-      def with_comparison_to_previous(today, yesterday)
-        y_hist = yesterday.then do |h|
-          if h.nil?
-            today
-          else
-            JSON.parse(h).map { |state, infected, dead| [state, infected.to_i, dead.to_i] }
-          end
-        end.to_h { |state, infected, dead| [state, { infected: infected, dead: dead }] }
-
-        today.map do |state, infected, dead|
-          y_infected, y_dead = y_hist[state].values_at(:infected, :dead)
-          [
-            state,
-            infected.then { |x| x >= 10_000 ? SI.convert(x) : x },
-            (((infected - y_infected) / y_infected.to_f) * 100).round(2),
-            dead.then { |x| x >= 10_000 ? SI.convert(x) : x },
-            y_dead.zero? ? dead : (((dead - y_dead) / y_dead.to_f) * 100).round(2)
-          ]
         end
       end
     end

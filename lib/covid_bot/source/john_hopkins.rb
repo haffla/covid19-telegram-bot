@@ -2,12 +2,8 @@
 
 module CovidBot
   module Source
-    class JohnHopkins
+    class JohnHopkins < Base
       attr_reader :redis
-
-      def initialize(redis:)
-        @redis = redis
-      end
 
       def fetch(time: Time.now.utc)
         resp = HTTParty.get(source_url(time))
@@ -62,31 +58,6 @@ module CovidBot
         end
 
         top << (["All"] + totals)
-      end
-
-      def with_comparison_to_previous(current, previous)
-        p_hist = previous.then do |h|
-          if h.nil?
-            current
-          else
-            JSON.parse(h).map { |country, confirmed, deaths, rec| [country, confirmed.to_i, deaths.to_i, rec.to_i] }
-          end
-        end.to_h { |country, confirmed, deaths, rec| [country, { confirmed: confirmed, deaths: deaths, rec: rec }] }
-
-        current.map do |country, confirmed, deaths, rec|
-          p_con, p_deaths, p_rec = p_hist[country]&.values_at(:confirmed, :deaths, :rec)
-          next [country, confirmed, 0, deaths, 0, rec, 0] if p_con.nil?
-
-          [
-            country,
-            confirmed.then { |x| x >= 10_000 ? SI.convert(x) : x },
-            (((confirmed - p_con) / p_con.to_f) * 100).round(2),
-            deaths.then { |x| x >= 10_000 ? SI.convert(x) : x },
-            (((deaths - p_deaths) / p_deaths.to_f) * 100).round(2),
-            rec.then { |x| x >= 10_000 ? SI.convert(x) : x },
-            (((rec - p_rec) / p_rec.to_f) * 100).round(2)
-          ]
-        end
       end
 
       def source_url(time)

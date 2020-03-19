@@ -45,7 +45,7 @@ class JohnHopkinsStats
 
   def process_csv(csv)
     top = csv.group_by { |c| c[1] }.filter_map do |country, c|
-      country = ISO3166::Country.find_country_by_name(country)
+      country = ISO3166::Country.new(country) || ISO3166::Country.find_country_by_name(country)
       next if country.nil?
 
       [

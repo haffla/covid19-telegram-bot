@@ -21,7 +21,7 @@ class ZeitStats
     return last_updated if last_updated_only
 
     states = json["states"].map do |s|
-      state, infected, deaths, recovered = s.values_at("state", "count", "recovered", "dead")
+      state, infected, recovered, deaths = s.values_at("state", "count", "recovered", "dead")
       state = if state.include?("-")
                 state.split("-").map { |s| s[0] }.join("-")
               else

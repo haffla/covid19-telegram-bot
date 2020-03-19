@@ -12,16 +12,12 @@ module CovidBot
     ["pref", "Edit preferences"]
   ].freeze
 
+  FACE_WITH_MEDICAL_MASK = to_utf8(0x1F637)
+  FACE_WITH_THERMOMETER = to_utf8(0x1F912)
+  FACE_NAUSEATED = to_utf8(0x1F922)
+
   class Bot
     attr_reader :redis
-
-    FACE_WITH_MEDICAL_MASK = to_utf8(0x1F637)
-    FACE_WITH_HEAD_BANDAGE = to_utf8(0x1F915)
-    FACE_WITH_THERMOMETER = to_utf8(0x1F912)
-    FACE_NAUSEATED = to_utf8(0x1F922)
-    THUMBS_UP = to_utf8(0x1F44D)
-    FACE_SKULL = to_utf8(0x1F480)
-    FACES_SICK = [FACE_WITH_HEAD_BANDAGE, FACE_WITH_THERMOMETER].freeze
 
     def initialize
       @redis = Redis.new
@@ -80,14 +76,10 @@ module CovidBot
                 text: "Moin, #{message.from.first_name}. Versuch mal /rki oder /zeit."
               )
 
-              sleep 1
-
               bot.api.send_message(
                 chat_id: message.chat.id,
                 text: "/jhu for international stats."
               )
-
-              sleep 1
 
               redis.sadd("clients", message.chat.id)
               redis.sadd("zeit_clients", message.chat.id)
@@ -100,10 +92,9 @@ module CovidBot
               redis.incr "called"
               bot.api.send_message(
                 chat_id: message.chat.id,
-                text: "John Hopkins says... #{FACE_NAUSEATED}"
+                text: "John Hopkins says... #{FACE_WITH_THERMOMETER}"
               )
 
-              sleep 0.5
               data, last_updated = JohnHopkinsStats.new(redis: redis).fetch
               labels = ["Country", "Confirmed", "Deaths"]
               labels << "Recovered" unless recovered_disabled
@@ -122,7 +113,6 @@ module CovidBot
                 ].compact
               end
 
-              sleep 0.7
               text = <<~MD
                 ```
                 #{MdTable.make(data: data)}
@@ -154,7 +144,6 @@ module CovidBot
                 )
               end
 
-              sleep 0.5
               stats, last_updated = CovidRkiStats.new(redis: redis).fetch
 
               percentage_explanation = "\nProzente: Vergleich zum Vortag"
@@ -183,20 +172,12 @@ module CovidBot
                 text: text,
                 parse_mode: "Markdown"
               )
-
-              if [true, false].sample
-                sleep 2
-                bot.api.send_message(
-                  chat_id: message.chat.id,
-                  text: FACES_SICK.sample
-                )
-              end
             when %r{^/zeit}
               is_subscribed = redis.sismember "zeit_clients", message.chat.id
               redis.incr "called"
               bot.api.send_message(
                 chat_id: message.chat.id,
-                text: "Die Zeit sagt... #{FACE_WITH_MEDICAL_MASK}"
+                text: "Die Zeit sagt... #{FACE_NAUSEATED}"
               )
 
               unless is_subscribed
@@ -223,8 +204,6 @@ module CovidBot
                 text: "*#{last_updated}\n#{labels.join(' | ')}*",
                 parse_mode: "Markdown"
               )
-
-              sleep 0.7
 
               text = <<~MD
                 ```
@@ -272,8 +251,6 @@ module CovidBot
                 text: text,
                 parse_mode: "Markdown"
               )
-
-              sleep 0.7
 
               text = message.text.gsub("_", "-")
               text = if text.size > 20

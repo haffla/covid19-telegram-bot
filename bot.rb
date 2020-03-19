@@ -31,6 +31,10 @@ COMMANDS = [
   ["pref", "Edit preferences"]
 ].freeze
 
+Telegram::Bot.configure do |config|
+  config.adapter = :patron
+end
+
 class Bot
   attr_reader :redis
 

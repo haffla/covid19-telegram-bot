@@ -64,9 +64,9 @@ class CovidRkiStats
       y_infected, y_dead = y_hist[state].values_at(:infected, :dead)
       [
         state,
-        infected,
+        infected.then { |x| x >= 10_000 ? SI.convert(x) : x },
         (((infected - y_infected) / y_infected.to_f) * 100).round(2),
-        dead,
+        dead.then { |x| x >= 10_000 ? SI.convert(x) : x },
         y_dead.zero? ? dead : (((dead - y_dead) / y_dead.to_f) * 100).round(2)
       ]
     end

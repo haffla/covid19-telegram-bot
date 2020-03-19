@@ -80,11 +80,11 @@ class JohnHopkinsStats
 
       [
         country,
-        confirmed,
+        confirmed.then { |x| x >= 10_000 ? SI.convert(x) : x },
         (((confirmed - p_con) / p_con.to_f) * 100).round(2),
-        deaths,
+        deaths.then { |x| x >= 10_000 ? SI.convert(x) : x },
         (((deaths - p_deaths) / p_deaths.to_f) * 100).round(2),
-        rec,
+        rec.then { |x| x >= 10_000 ? SI.convert(x) : x },
         (((rec - p_rec) / p_rec.to_f) * 100).round(2)
       ]
     end

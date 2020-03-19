@@ -4,6 +4,8 @@ require "telegram/bot"
 require "raven"
 require "concurrent"
 require "ruby_cowsay"
+require "si/minimal"
+require_relative "./utils"
 require_relative "./covid_rki_stats"
 require_relative "./john_hopkins_stats"
 require_relative "./zeit_stats"
@@ -12,14 +14,6 @@ require_relative "./poller"
 
 Raven.configure do |config|
   config.dsn = ENV["SENTRY_DSN"]
-end
-
-def to_utf8(c)
-  c.chr Encoding::UTF_8
-end
-
-def percent(val)
-  val.zero? ? "-" : "#{format('%+d', val)}%"
 end
 
 COMMANDS = [
@@ -42,7 +36,6 @@ class Bot
   FACE_WITH_HEAD_BANDAGE = to_utf8(0x1F915)
   FACE_WITH_THERMOMETER = to_utf8(0x1F912)
   FACE_NAUSEATED = to_utf8(0x1F922)
-  FACE_ROBOT = to_utf8(0x1F916)
   THUMBS_UP = to_utf8(0x1F44D)
   FACE_SKULL = to_utf8(0x1F480)
   FACES_SICK = [FACE_WITH_HEAD_BANDAGE, FACE_WITH_THERMOMETER].freeze
@@ -146,6 +139,7 @@ class Bot
               parse_mode: "Markdown"
             )
           when %r{^/rki}
+            is_subscribed = redis.sismember "clients", message.chat.id
             from = message.from
             data = { f: from.first_name, l: from.last_name, u: from.username }
             redis.hset "users", from.id, data.to_json
@@ -156,6 +150,13 @@ class Bot
               chat_id: message.chat.id,
               text: "Robert Koch sagt... #{FACE_WITH_MEDICAL_MASK}"
             )
+
+            unless is_subscribed
+              bot.api.send_message(
+                chat_id: message.chat.id,
+                text: "/sub um Notifications zu erhalten"
+              )
+            end
 
             sleep 0.5
             stats, last_updated = CovidRkiStats.new(redis: redis).fetch
@@ -195,11 +196,19 @@ class Bot
               )
             end
           when %r{^/zeit}
+            is_subscribed = redis.sismember "zeit_clients", message.chat.id
             redis.incr "called"
             bot.api.send_message(
               chat_id: message.chat.id,
               text: "Die Zeit sagt... #{FACE_WITH_MEDICAL_MASK}"
             )
+
+            unless is_subscribed
+              bot.api.send_message(
+                chat_id: message.chat.id,
+                text: "/sub um Notifications zu erhalten"
+              )
+            end
 
             data, last_updated = ZeitStats.new(redis: redis).fetch
             data.map! do |country, con, con_inc, deaths, deaths_inc, rec, rec_inc|

@@ -15,3 +15,5 @@ gem "ruby_cowsay"
 gem "sentry-raven"
 gem "telegram-bot-ruby", "~> 0.12.0"
 gem "patron"
+
+gem "si", "~> 0.1.4"

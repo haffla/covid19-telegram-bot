@@ -59,11 +59,11 @@ class ZeitStats
       y_infected, y_dead, y_recovered = y_hist[state].values_at(:infected, :dead, :recovered)
       [
         state,
-        infected,
+        infected.then { |x| x >= 10_000 ? SI.convert(x) : x },
         (((infected - y_infected) / y_infected.to_f) * 100).round(2),
-        dead,
+        dead.then { |x| x >= 10_000 ? SI.convert(x) : x },
         y_dead.zero? ? 0 : (((dead - y_dead) / y_dead.to_f) * 100).round(2),
-        recovered,
+        recovered.then { |x| x >= 10_000 ? SI.convert(x) : x },
         y_recovered.zero? ? 0 : (((recovered - y_recovered) / y_recovered.to_f) * 100).round(2)
       ]
     end

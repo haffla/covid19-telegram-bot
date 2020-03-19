@@ -1,7 +1,11 @@
 # frozen_string_literal: true
 
+require_relative "./utils"
+
 class Poller
   attr_reader :redis, :bot
+
+  FACE_ROBOT = to_utf8(0x1F916)
 
   def initialize(redis:, bot:)
     @redis = redis
@@ -22,7 +26,7 @@ class Poller
   def poll_rki
     instance = CovidRkiStats.new(redis: redis)
     redis_key = "rki_last_updated_at"
-    message = "#{FACE_ROBOT} Das RKI hat neue Zahlen: /rki"
+    message = "#{FACE_ROBOT} Das RKI hat neue Zahlen: /rki. Nervt? /unsub"
     do_poll(instance, redis_key, message) do
       redis.del("RKI_BODY")
       redis.smembers("clients") || []
@@ -32,7 +36,7 @@ class Poller
   def poll_zeit
     instance = ZeitStats.new
     redis_key = "zeit_last_updated_at"
-    message = "#{FACE_ROBOT} Die Zeit hat neue Zahlen: /zeit"
+    message = "#{FACE_ROBOT} Die Zeit hat neue Zahlen: /zeit. Nervt? /unsub"
     do_poll(instance, redis_key, message) do
       redis.smembers("zeit_clients") || []
     end

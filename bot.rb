@@ -126,7 +126,7 @@ class Bot
                 "#{con} #{percent(con_inc)}",
                 "#{deaths} #{percent(deaths_inc)}",
                 ("#{rec} #{percent(rec_inc)}" unless recovered_disabled)
-              ].compact!
+              ].compact
             end
 
             sleep 0.7
@@ -204,7 +204,7 @@ class Bot
                 "#{con} #{percent(con_inc)}",
                 "#{deaths} #{percent(deaths_inc)}",
                 ("#{rec} #{percent(rec_inc)}" unless recovered_disabled)
-              ].compact!
+              ].compact
             end
 
             labels = ["Land", "Infizierte", "Todesfälle"]

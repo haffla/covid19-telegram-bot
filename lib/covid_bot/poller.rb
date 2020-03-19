@@ -12,7 +12,7 @@ module CovidBot
     end
 
     def start
-      task = Concurrent::TimerTask.new(execution_interval: 5, run_now: true) { poll }
+      task = Concurrent::TimerTask.new(execution_interval: 600, run_now: true) { poll }
 
       task.execute
     end

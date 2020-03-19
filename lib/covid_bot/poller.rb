@@ -12,7 +12,7 @@ module CovidBot
     end
 
     def start
-      task = Concurrent::TimerTask.new(execution_interval: 600, run_now: true) { poll }
+      task = Concurrent::TimerTask.new(execution_interval: 5, run_now: true) { poll }
 
       task.execute
     end
@@ -23,7 +23,7 @@ module CovidBot
     end
 
     def poll_rki
-      instance = CovidRkiStats.new(redis: redis)
+      instance = Source::Rki.new(redis: redis)
       redis_key = "rki_last_updated_at"
       message = "#{FACE_ROBOT} Das RKI hat neue Zahlen: /rki. Nervt? /unsub"
       clients_key = "clients"
@@ -33,7 +33,7 @@ module CovidBot
     end
 
     def poll_zeit
-      instance = ZeitStats.new(redis: redis)
+      instance = Source::DieZeit.new(redis: redis)
       redis_key = "zeit_last_updated_at"
       message = "#{FACE_ROBOT} Die Zeit hat neue Zahlen: /zeit. Nervt? /unsub"
       clients_key = "zeit_clients"

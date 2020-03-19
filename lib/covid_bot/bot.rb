@@ -80,7 +80,7 @@ module CovidBot
                 text: "John Hopkins says... #{FACE_WITH_THERMOMETER}"
               )
 
-              data, last_updated = JohnHopkinsStats.new(redis: redis).fetch
+              data, last_updated = Source::JohnHopkins.new(redis: redis).fetch
               labels = %w[Country Confirmed Deaths]
               labels << "Recovered" unless recovered_disabled
               bot.api.send_message(
@@ -129,7 +129,7 @@ module CovidBot
                 )
               end
 
-              stats, last_updated = CovidRkiStats.new(redis: redis).fetch
+              stats, last_updated = Source::Rki.new(redis: redis).fetch
 
               percentage_explanation = "\nProzente: Vergleich zum Vortag"
               bot.api.send_message(
@@ -172,7 +172,7 @@ module CovidBot
                 )
               end
 
-              data, last_updated = ZeitStats.new(redis: redis).fetch
+              data, last_updated = Source::DieZeit.new(redis: redis).fetch
               data.map! do |country, con, con_inc, deaths, deaths_inc, rec, rec_inc|
                 [
                   country,

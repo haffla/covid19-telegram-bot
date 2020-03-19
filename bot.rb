@@ -52,28 +52,29 @@ class Bot
       bot.listen do |message|
         case message
         when Telegram::Bot::Types::CallbackQuery
-          # case message.data
-          # when "sub_rki"
-          #   redis.sadd "clients", message.from.id
-          #   bot.api.send_message(chat_id: message.from.id, text: "Don't sweat it. You're subscribed to updates from RKI. /unsub if you change your mind.")
-          # when "sub_zeit"
-          #   redis.sadd "zeit_clients", message.from.id
-          #   bot.api.send_message(chat_id: message.from.id, text: "Die Zeit heilt alle Wunden. /unsub in case you want to stop receiving updates.")
-          # when "unsub_rki"
-          #   redis.srem "clients", message.from.id
-          #   bot.api.send_message(chat_id: message.from.id, text: "I hate to see you go... RKI will not bother you anymore.")
-          # when "unsub_zeit"
-          #   redis.srem "zeit_clients", message.from.id
-          #   bot.api.send_message(chat_id: message.from.id, text: "Die Zeit vergeht. You will not receive any more updates. Ciao!")
-          # when "disable_recovered"
-          #   settings = redis.hget("settings", message.from.id).then { |h| h.nil? ? {} : JSON.parse(h) }
-          #   redis.hset("settings", message.from.id, settings.merge("recovered_disabled" => true).to_json)
-          #   bot.api.send_message(chat_id: message.from.id, text: "Done!")
-          # when "enable_recovered"
-          #   settings = redis.hget("settings", message.from.id).then { |h| h.nil? ? {} : JSON.parse(h) }
-          #   redis.hset("settings", message.from.id, settings.merge("recovered_disabled" => false).to_json)
-          #   bot.api.send_message(chat_id: message.from.id, text: "Done!")
-          # end
+          id = message.message.chat.id
+          case message.data
+          when "sub_rki"
+            redis.sadd "clients", id
+            bot.api.send_message(chat_id: id, text: "Don't sweat it. You're subscribed to updates from RKI. /unsub if you change your mind.")
+          when "sub_zeit"
+            redis.sadd "zeit_clients", id
+            bot.api.send_message(chat_id: id, text: "Die Zeit heilt alle Wunden. /unsub in case you want to stop receiving updates.")
+          when "unsub_rki"
+            redis.srem "clients", id
+            bot.api.send_message(chat_id: id, text: "I hate to see you go... RKI will not bother you anymore.")
+          when "unsub_zeit"
+            redis.srem "zeit_clients", id
+            bot.api.send_message(chat_id: id, text: "Die Zeit vergeht. You will not receive any more updates. Ciao!")
+          when "disable_recovered"
+            settings = redis.hget("settings", id).then { |h| h.nil? ? {} : JSON.parse(h) }
+            redis.hset("settings", id, settings.merge("recovered_disabled" => true).to_json)
+            bot.api.send_message(chat_id: id, text: "Done!")
+          when "enable_recovered"
+            settings = redis.hget("settings", id).then { |h| h.nil? ? {} : JSON.parse(h) }
+            redis.hset("settings", id, settings.merge("recovered_disabled" => false).to_json)
+            bot.api.send_message(chat_id: id, text: "Done!")
+          end
         when Telegram::Bot::Types::Message
           recovered_disabled = redis.hget("settings", message.chat.id).then { |h| h.nil? ? {} : JSON.parse(h) }.then { |h| h["recovered_disabled"] }
           case message.text

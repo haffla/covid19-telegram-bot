@@ -17,7 +17,7 @@ module CovidBot
             l = m[0].ljust(justs[i], " ").reverse
             r = m[1].rjust(justs[i], " ").reverse
 
-            l.gsub(/\s/).with_index { |_, i| r[i] }.reverse
+            l.gsub(/\s/).with_index { |_, idx| r[idx] }.reverse
           else
             c.ljust(justs[i], " ")
           end

@@ -7,7 +7,6 @@ GEM
       thread_safe (~> 0.3, >= 0.3.1)
     coercible (1.0.0)
       descendants_tracker (~> 0.0.1)
-    concurrent-ruby (1.1.6)
     countries (3.0.1)
       i18n_data (~> 0.10.0)
       sixarm_ruby_unaccent (~> 1.1)
@@ -54,7 +53,6 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  concurrent-ruby
   countries
   httparty (~> 0.18.0)
   nokogiri (~> 1.10)

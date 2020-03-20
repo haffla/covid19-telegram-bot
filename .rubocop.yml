@@ -22,5 +22,8 @@ Style/HashTransformValues:
 Style/Documentation:
   Enabled: false
 
+Style/FormatStringToken:
+  Enabled: false
+
 Metrics/AbcSize:
   Max: 30

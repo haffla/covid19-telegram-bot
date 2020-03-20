@@ -31,7 +31,7 @@ module CovidBot
                     state.split("-").map { |s| s[0] }.join("-")
                   else
                     state[0..2]
-              end
+                  end
           [state, infected, deaths]
         end
 

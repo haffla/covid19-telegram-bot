@@ -2,6 +2,8 @@
 
 module CovidBot
   class Bot
+    include Logging
+
     attr_reader :redis
 
     def initialize
@@ -9,7 +11,7 @@ module CovidBot
     end
 
     def run!
-      Telegram::Bot::Client.run(ENV["TOKEN"], logger: Logger.new(STDOUT)) do |bot|
+      Telegram::Bot::Client.run(ENV["TOKEN"], logger: logger) do |bot|
         poller = Poller.new(redis: redis, bot: bot)
         poller.start
 
@@ -246,7 +248,7 @@ module CovidBot
 
               bot.api.send_message(
                 chat_id: message.chat.id,
-                text: "_#{message}_\n\nNo hablo eso!",
+                text: "_#{text}_\n\nNo hablo eso!",
                 parse_mode: "Markdown"
               )
 

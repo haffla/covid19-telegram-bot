@@ -2,6 +2,8 @@
 
 module CovidBot
   class Poller
+    include Logging
+
     attr_reader :redis, :bot
 
     FACE_ROBOT = to_utf8(0x1F916)
@@ -12,14 +14,21 @@ module CovidBot
     end
 
     def start
-      task = Concurrent::TimerTask.new(execution_interval: 600, run_now: true) { poll }
-
-      task.execute
+      Thread.new do
+        loop do
+          poll
+          sleep 600
+        end
+      end
     end
 
     def poll
+      logger.info "Polling for updates"
       poll_rki
       poll_zeit
+    rescue StandardError => e
+      logger.fatal("NOOOOO: #{e.full_message}")
+      Raven.capture_exception(e)
     end
 
     def poll_rki
@@ -48,15 +57,19 @@ module CovidBot
           redis.set(redis_key, last_updated)
           unless r.nil?
             yield if block_given?
-            clients = redis.smembers(clients_key)
+            clients = redis.smembers(clients_key) || []
+            logger.info "Delivering message to #{clients.size} clients"
             clients.each do |client|
               bot.api.send_message(
                 chat_id: client,
                 text: message,
                 parse_mode: "Markdown"
               )
-            rescue StandardError
+              logger.info(client)
+            rescue StandardError => e
               redis.srem(clients_key, client)
+              logger.fatal("Error sending message to client #{client}: #{e.full_message}")
+              Raven.capture_exception(e)
             end
           end
         end

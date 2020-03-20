@@ -4,7 +4,6 @@ ruby "2.7.0"
 
 source "https://rubygems.org"
 
-gem "concurrent-ruby", require: "concurrent"
 gem "countries"
 gem "httparty", "~> 0.18.0"
 gem "nokogiri", "~> 1.10"

@@ -76,7 +76,8 @@ module CovidBot
                 text: "Oh and... I subscribed you to updates of RKI and Die Zeit. So whenever they update their data I will let you know. /unsub if you don't want that."
               )
             when %r{^/jhu}
-              redis.incr "called"
+              track(message.from, :jhu)
+
               bot.api.send_message(
                 chat_id: message.chat.id,
                 text: "John Hopkins says... #{FACE_WITH_THERMOMETER}"
@@ -113,11 +114,7 @@ module CovidBot
               )
             when %r{^/rki}
               is_subscribed = redis.sismember "clients", message.chat.id
-              from = message.from
-              data = { f: from.first_name, l: from.last_name, u: from.username }
-              redis.hset "users", from.id, data.to_json
-
-              redis.incr "called"
+              track(message.from, :rki)
 
               bot.api.send_message(
                 chat_id: message.chat.id,
@@ -161,7 +158,8 @@ module CovidBot
               )
             when %r{^/zeit}
               is_subscribed = redis.sismember "zeit_clients", message.chat.id
-              redis.incr "called"
+              track(message.from, :zeit)
+
               bot.api.send_message(
                 chat_id: message.chat.id,
                 text: "Die Zeit sagt... #{FACE_NAUSEATED}"
@@ -266,6 +264,12 @@ module CovidBot
 
     def percent(val)
       val.zero? ? "-" : "#{format('%+d', val)}%"
+    end
+
+    def track(from, source)
+      data = { f: from.first_name, l: from.last_name, u: from.username, last: Time.now.to_s }
+      redis.hset "users", from.id, data.to_json
+      redis.incr "called_#{source}"
     end
   end
 end

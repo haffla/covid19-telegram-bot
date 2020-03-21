@@ -10,6 +10,8 @@ loader.push_dir("lib")
 loader.setup
 loader.eager_load if ENV["BOT_ENV"] == "production"
 
+$stdout.sync = true
+
 Raven.configure do |config|
   config.dsn = ENV["SENTRY_DSN"]
 end

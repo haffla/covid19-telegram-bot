@@ -23,10 +23,10 @@ module CovidBot
         return last_updated if last_updated_only
 
         today = doc.css("table tbody tr").map do |tr|
-          tr.children.first(5).map { |e| e.children.first.text }
+          tr.children.first(5).filter_map { |e| e.children.first&.text }
         end.map do |state, inf, _, _, deaths|
-          infected = inf.gsub(".", "").to_i
-          deaths = deaths.gsub(".", "").to_i
+          infected = inf&.gsub(".", "").to_i
+          deaths = deaths&.gsub(".", "").to_i
           state = if state.include?("-")
                     state.split("-").map { |s| s[0] }.join("-")
                   else

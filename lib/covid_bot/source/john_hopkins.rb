@@ -30,7 +30,7 @@ module CovidBot
         with_comparison_to_previous(data, redis.get(p_key)).then do |result|
           redis.set(time.strftime("%y.%m.%d") + "_ju", data.to_json)
           [
-            result.then { |r| (r.first(15) << r.last).uniq },
+            result.then { |r| r.first(15).uniq },
             last_updated.strftime("%d/%m/%Y %H:%M GMT")
           ]
         end
@@ -57,7 +57,7 @@ module CovidBot
           carry[2] += r[5].to_i
         end
 
-        top << (["All"] + totals)
+        [(["All"] + totals)] + top
       end
 
       def source_url(time)

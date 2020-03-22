@@ -2,7 +2,8 @@
 
 module CovidBot
   class MdTable
-    def self.make(data:)
+    def self.make(data:, compact: false)
+      data = to_two_columns(data) if compact
       justs = data.transpose.map do |col|
         col.inject(0) { |cur, s| cur >= s.to_s.size ? cur : s.to_s.size }
       end
@@ -23,6 +24,15 @@ module CovidBot
           end
         end.join(" | ")
       end.join("\n")
+    end
+
+    def self.to_two_columns(data)
+      data.flat_map do |col1, col2, *rest|
+        [
+          [col1, col2],
+          *rest.map! { |r| ["", r] }
+        ]
+      end
     end
   end
 end

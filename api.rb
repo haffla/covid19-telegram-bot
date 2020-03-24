@@ -3,6 +3,7 @@
 require "rack"
 require "redis"
 require "json"
+require "date"
 
 class Application
   attr_reader :redis
@@ -23,8 +24,12 @@ class Application
 
   def body
     users = redis.hgetall("users").transform_values { JSON.parse(_1) }
-    rki_clients = redis.smembers("clients").map { users[_1] }.compact
-    zeit_clients = redis.smembers("zeit_clients").map { users[_1] }.compact
+    rki_clients = redis.smembers("clients").map { users[_1] }.compact.sort_by do |el|
+      el["last"].then { _1.nil? ? DateTime.new : DateTime.parse(_1) }
+    end.reverse!
+    zeit_clients = redis.smembers("zeit_clients").map { users[_1] }.compact.sort_by do |el|
+      el["last"].then { _1.nil? ? DateTime.new : DateTime.parse(_1) }
+    end.reverse!
 
     {
       clients: {

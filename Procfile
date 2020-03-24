@@ -1,2 +1,2 @@
 bot: ruby bot.rb
-api: ruby api.rb
+web: ruby api.rb

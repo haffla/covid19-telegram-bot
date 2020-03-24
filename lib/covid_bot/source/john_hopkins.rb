@@ -39,15 +39,15 @@ module CovidBot
       private
 
       def process_csv(csv)
-        top = csv.group_by { |c| c[1] }.filter_map do |country, c|
+        top = csv.group_by { |c| c[3] }.filter_map do |country, c|
           country = ISO3166::Country.new(country) || ISO3166::Country.find_country_by_name(country)
           next if country.nil?
 
           [
             country.alpha3,
-            c.sum { |r| r[3].to_i }, # confirmed
-            c.sum { |r| r[4].to_i }, # deaths
-            c.sum { |r| r[5].to_i }  # recovered
+            c.sum { |r| r[7].to_i }, # confirmed
+            c.sum { |r| r[8].to_i }, # deaths
+            c.sum { |r| r[9].to_i }  # recovered
           ]
         end
 

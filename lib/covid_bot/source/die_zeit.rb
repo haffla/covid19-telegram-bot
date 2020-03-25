@@ -24,7 +24,7 @@ module CovidBot
         last_updated = DateTime.parse(last_updated)
         t_inf, t_deaths, t_rec = json["totals"].values_at("count", "dead", "recovered")
         states << ["Ges", t_inf, t_deaths, t_rec]
-        y_key = (last_updated - 3600 * 24).strftime("%d.%m.%y") + "_zeit"
+        y_key = (last_updated - 1).strftime("%d.%m.%y") + "_zeit"
         with_comparison_to_previous(states, redis.get(y_key)).then do |res|
           k = last_updated.strftime("%d.%m.%y") + "_zeit"
           redis.set(k, states.to_json)

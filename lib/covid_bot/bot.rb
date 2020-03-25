@@ -80,10 +80,10 @@ module CovidBot
 
               bot.api.send_message(
                 chat_id: message.chat.id,
-                text: "John Hopkins says... #{FACE_WITH_THERMOMETER}"
+                text: "Johns Hopkins says... #{FACE_WITH_THERMOMETER}"
               )
 
-              data, last_updated = Source::JohnHopkins.new(redis: redis).fetch
+              data, last_updated = Source::JohnsHopkins.new(redis: redis).fetch
               labels = %w[Country Confirmed Deaths]
               labels << "Recovered" unless recovered_disabled
               bot.api.send_message(

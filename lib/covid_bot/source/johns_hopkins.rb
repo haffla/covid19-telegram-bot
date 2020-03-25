@@ -2,7 +2,7 @@
 
 module CovidBot
   module Source
-    class JohnHopkins < Base
+    class JohnsHopkins < Base
       attr_reader :redis
 
       def fetch(time: Time.now.utc)

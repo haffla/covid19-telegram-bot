@@ -17,6 +17,8 @@ class Application
     req = Rack::Request.new(env)
     if req.get? && req.path == @path
       [200, {}, [body]]
+    elsif req.path == "/status"
+      [200, {}, []]
     else
       [400, {}, []]
     end

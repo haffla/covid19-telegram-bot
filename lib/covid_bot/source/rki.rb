@@ -3,36 +3,34 @@
 module CovidBot
   module Source
     class Rki < Base
-      attr_reader :redis
-
-      URL = "https://www.rki.de/DE/Content/InfAZ/N/Neuartiges_Coronavirus/Fallzahlen.html"
+      def source_url
+        "https://www.rki.de/DE/Content/InfAZ/N/Neuartiges_Coronavirus/Fallzahlen.html"
+      end
 
       def fetch(last_updated_only: false)
-        body = redis.get("RKI_BODY").then do |r|
-          if r.nil?
-            b = HTTParty.get(URL).body
-            redis.set("RKI_BODY", b, ex: 60 * 30)
-            b
-          else
-            r
-          end
+        if last_updated_only
+          doc = Nokogiri::HTML(fetch_source)
+          last_updated = doc.at('h3:contains("Fallzahlen in Deutschland")').next_element.text
+          return last_updated
         end
 
-        doc = Nokogiri::HTML(body)
-        last_updated = doc.at('h3:contains("Fallzahlen in Deutschland")').next_element.text
-        return last_updated if last_updated_only
+        today, last_updated = with_data_cache do
+          doc = Nokogiri::HTML(fetch_source)
+          last_updated = doc.at('h3:contains("Fallzahlen in Deutschland")').next_element.text
+          today = doc.css("table tbody tr").map do |tr|
+            tr.children.first(5).filter_map { |e| e.children.first&.text }
+          end.map do |state, inf, _, _, deaths|
+            infected = inf&.gsub(".", "").to_i
+            deaths = deaths&.gsub(".", "").to_i
+            state = if state.include?("-")
+                      state.split("-").map { |s| s[0] }.join("-")
+                    else
+                      state[0..2]
+                    end
+            [state, infected, deaths]
+          end
 
-        today = doc.css("table tbody tr").map do |tr|
-          tr.children.first(5).filter_map { |e| e.children.first&.text }
-        end.map do |state, inf, _, _, deaths|
-          infected = inf&.gsub(".", "").to_i
-          deaths = deaths&.gsub(".", "").to_i
-          state = if state.include?("-")
-                    state.split("-").map { |s| s[0] }.join("-")
-                  else
-                    state[0..2]
-                  end
-          [state, infected, deaths]
+          [today, last_updated]
         end
 
         last_updated_ts = last_updated.scan(/\d+\.\d+\.\d+/).first

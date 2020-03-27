@@ -33,9 +33,7 @@ module CovidBot
       redis_key = "rki_last_updated_at"
       message = "#{FACE_ROBOT} Das RKI hat neue Zahlen: /rki. Nervt? /unsub"
       clients_key = "clients"
-      do_poll(instance, redis_key, message, clients_key) do
-        redis.del("RKI_BODY")
-      end
+      do_poll(instance, redis_key, message, clients_key)
     end
 
     def poll_zeit
@@ -53,8 +51,8 @@ module CovidBot
         if r != last_updated
           redis.set(redis_key, last_updated)
           unless r.nil?
-            yield if block_given?
             clients = redis.smembers(clients_key) || []
+            instance.purge_cache if clients.any?
             logger.info "Delivering message to #{clients.size} clients"
             clients.each do |client|
               bot.api.send_message(
@@ -62,7 +60,6 @@ module CovidBot
                 text: message,
                 parse_mode: "Markdown"
               )
-              logger.info(client)
             rescue StandardError => e
               redis.srem(clients_key, client)
               logger.fatal("Error sending message to client #{client}: #{e.full_message}")

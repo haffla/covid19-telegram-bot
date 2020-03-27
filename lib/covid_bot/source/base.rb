@@ -3,8 +3,23 @@
 module CovidBot
   module Source
     class Base
+      attr_reader :redis
+
       def initialize(redis:)
         @redis = redis
+      end
+
+      def http_get(source)
+        resp = HTTParty.get(source)
+        return resp.body if resp.code < 300
+      end
+
+      def fetch_source
+        http_get source_url
+      end
+
+      def purge_cache
+        redis.del source_url
       end
 
       def with_comparison_to_previous(today, yesterday)
@@ -25,6 +40,16 @@ module CovidBot
               y.to_i.zero? ? 0 : (((t - y) / y.to_f) * 100).round(2)
             ]
           end.then { |res| [state, *res] }
+        end
+      end
+
+      def with_data_cache
+        redis.get(source_url).then do |data|
+          next JSON.parse(data) if data
+
+          data = yield
+          redis.set(source_url, data.to_json, ex: 3600)
+          data
         end
       end
 

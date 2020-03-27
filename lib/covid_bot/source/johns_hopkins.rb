@@ -3,29 +3,23 @@
 module CovidBot
   module Source
     class JohnsHopkins < Base
-      attr_reader :redis
+      def fetch
+        time = Time.now.utc
+        data, last_updated = with_data_cache do
+          body = fetch_source
+          while body.nil?
+            time -= 3600 * 24
+            body = http_get main_source_url(time)
+          end
 
-      def fetch(time: Time.now.utc)
-        resp = HTTParty.get(source_url(time))
-        while resp.code == 404
-          time -= 3600 * 24
-          resp = HTTParty.get(source_url(time))
+          csv = CSV.parse(body)
+          commits = JSON.parse(http_get(commit_url(time)))
+          last_updated = commits.first["commit"]["committer"]["date"]
+
+          [process_csv(csv[1..-1]), last_updated]
         end
 
-        csv = CSV.parse(resp.body)
-
-        commits = JSON.parse(
-          HTTParty.get(
-            commit_url(time)
-          ).body
-        )
-
-        last_updated = commits.first["commit"]["committer"]["date"].then do |d|
-          Time.parse(d)
-        end
-
-        data = process_csv(csv[1..-1])
-
+        last_updated = Time.parse(last_updated)
         p_key = (time - 3600 * 24).strftime("%y.%m.%d") + "_ju"
         with_comparison_to_previous(data, redis.get(p_key)).then do |result|
           redis.set(time.strftime("%y.%m.%d") + "_ju", data.to_json)
@@ -60,13 +54,17 @@ module CovidBot
         [(["All"] + totals)] + top
       end
 
-      def source_url(time)
+      def source_url
+        main_source_url
+      end
+
+      def main_source_url(time = Time.now.utc)
         s = time.strftime("%m-%d-%Y")
         "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/#{s}.csv"
       end
 
       def commit_url(time)
-        file = CGI.escape source_url(time).split("/").last(3).join("/")
+        file = CGI.escape main_source_url(time).split("/").last(3).join("/")
         "https://api.github.com/repos/CSSEGISandData/COVID-19/commits?path=#{file}&page=1&per_page=1"
       end
     end

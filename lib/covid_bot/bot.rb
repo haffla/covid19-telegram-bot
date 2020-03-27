@@ -129,8 +129,10 @@ module CovidBot
 
     def async(meth, bot, message, source)
       Thread.new do
+        time = Time.now.to_f
         Raven.capture do
           send meth, bot, message
+          logger.debug "Took #{(Time.now.to_f - time).round(2)} seconds"
         rescue StandardError => e
           bot.api.send_message(
             chat_id: message.chat.id,

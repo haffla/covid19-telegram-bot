@@ -45,7 +45,7 @@ module CovidBot
     end
 
     def do_poll(instance, redis_key, message, clients_key)
-      last_updated = instance.fetch(last_updated_only: true, skip_cache: true)
+      last_updated = instance.fetch(last_updated_only: true)
 
       redis.get(redis_key).then do |r|
         if r != last_updated

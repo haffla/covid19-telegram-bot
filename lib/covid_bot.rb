@@ -17,4 +17,5 @@ module CovidBot
   FACE_WITH_MEDICAL_MASK = to_utf8(0x1F637)
   FACE_WITH_THERMOMETER = to_utf8(0x1F912)
   FACE_NAUSEATED = to_utf8(0x1F922)
+  FACE_ROBOT = to_utf8(0x1F916)
 end

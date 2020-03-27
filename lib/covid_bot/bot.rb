@@ -68,11 +68,11 @@ module CovidBot
                 text: "Oh and... I subscribed you to updates of RKI and Die Zeit. So whenever they update their data I will let you know. /unsub if you don't want that."
               )
             when %r{^/jhu}
-              async -> { handle_jhu(bot, message) }
+              async :handle_jhu, bot, message, "Johns Hopkins"
             when %r{^/rki}
-              async -> { handle_rki(bot, message) }
+              async :handle_rki, bot, message, "RKI"
             when %r{^/zeit}
-              async -> { handle_zeit(bot, message) }
+              async :handle_zeit, bot, message, "Die Zeit"
             when %r{^/sub}
               kb = [
                 Telegram::Bot::Types::InlineKeyboardButton.new(text: "Robert Koch", callback_data: "sub_rki"),
@@ -127,10 +127,19 @@ module CovidBot
 
     private
 
-    def async(job)
+    def async(meth, bot, message, source)
       Thread.new do
         Raven.capture do
-          job.call
+          begin
+            send meth, bot, message
+          rescue StandardError => e
+            bot.api.send_message(
+              chat_id: message.chat.id,
+              text: "*#{FACE_ROBOT} Fatal!\nI'm having trouble fetching data from #{source}. Please try again later.*",
+              parse_mode: "Markdown"
+            )
+            raise e
+          end
         end
       end
     end

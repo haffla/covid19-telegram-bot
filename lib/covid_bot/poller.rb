@@ -6,8 +6,6 @@ module CovidBot
 
     attr_reader :redis, :bot
 
-    FACE_ROBOT = to_utf8(0x1F916)
-
     def initialize(redis:, bot:)
       @redis = redis
       @bot = bot
@@ -15,20 +13,19 @@ module CovidBot
 
     def start
       Thread.new do
-        loop do
-          poll
-          sleep 600
+        Raven.capture do
+          loop do
+            poll
+            sleep 600
+          end
         end
       end
     end
 
     def poll
-      logger.info "Polling for updates"
+      logger.info "#{FACE_ROBOT} Polling for updates"
       poll_rki
       poll_zeit
-    rescue StandardError => e
-      logger.fatal("NOOOOO: #{e.full_message}")
-      Raven.capture_exception(e)
     end
 
     def poll_rki

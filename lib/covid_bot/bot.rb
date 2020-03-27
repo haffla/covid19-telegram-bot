@@ -32,18 +32,10 @@ module CovidBot
             when "unsub_zeit"
               redis.srem "zeit_clients", id
               bot.api.send_message(chat_id: id, text: "Die Zeit vergeht. You will not receive any more updates. Ciao!")
-            when "disable_recovered"
-              settings = redis.hget("settings", id).then { |h| h.nil? ? {} : JSON.parse(h) }
-              redis.hset("settings", id, settings.merge("recovered_disabled" => true).to_json)
-              bot.api.send_message(chat_id: id, text: "Done!")
-            when "enable_recovered"
-              settings = redis.hget("settings", id).then { |h| h.nil? ? {} : JSON.parse(h) }
-              redis.hset("settings", id, settings.merge("recovered_disabled" => false).to_json)
-              bot.api.send_message(chat_id: id, text: "Done!")
+            else
+              raise StandardError, "Unknown callback_query #{message.data}"
             end
           when Telegram::Bot::Types::Message
-            recovered_disabled = redis.hget("settings", message.chat.id).then { |h| h.nil? ? {} : JSON.parse(h) }.then { |h| h["recovered_disabled"] }
-
             case message.text
             when nil # apparently this is what happens when a bot is added/removed to a group chat
               if message.left_chat_member
@@ -76,131 +68,11 @@ module CovidBot
                 text: "Oh and... I subscribed you to updates of RKI and Die Zeit. So whenever they update their data I will let you know. /unsub if you don't want that."
               )
             when %r{^/jhu}
-              track(message.from, :jhu)
-
-              bot.api.send_message(
-                chat_id: message.chat.id,
-                text: "Johns Hopkins says... #{FACE_WITH_THERMOMETER}"
-              )
-
-              data, last_updated = Source::JohnsHopkins.new(redis: redis).fetch
-              labels = %w[Country Confirmed Deaths]
-              labels << "Recovered" unless recovered_disabled
-              bot.api.send_message(
-                chat_id: message.chat.id,
-                text: "*Last updated at #{last_updated} \n#{labels.join(' | ')}\nPercentage: Compared to previous day*",
-                parse_mode: "Markdown"
-              )
-
-              data.map! do |country, con, con_inc, deaths, deaths_inc, rec, rec_inc|
-                [
-                  country,
-                  "#{con} #{percent(con_inc)}",
-                  "#{deaths} #{percent(deaths_inc)}",
-                  ("#{rec} #{percent(rec_inc)}" unless recovered_disabled)
-                ].compact
-              end
-
-              text = <<~MD
-                ```
-                #{MdTable.make(data: data)}
-                ```
-              MD
-
-              bot.api.send_message(
-                chat_id: message.chat.id,
-                text: text,
-                parse_mode: "Markdown"
-              )
+              async -> { handle_jhu(bot, message) }
             when %r{^/rki}
-              is_subscribed = redis.sismember "clients", message.chat.id
-              track(message.from, :rki)
-
-              bot.api.send_message(
-                chat_id: message.chat.id,
-                text: "Robert Koch sagt... #{FACE_WITH_MEDICAL_MASK}"
-              )
-
-              unless is_subscribed
-                bot.api.send_message(
-                  chat_id: message.chat.id,
-                  text: "/sub um Notifications zu erhalten"
-                )
-              end
-
-              stats, last_updated = Source::Rki.new(redis: redis).fetch
-
-              percentage_explanation = "\nProzente: Vergleich zum Vortag"
-              bot.api.send_message(
-                chat_id: message.chat.id,
-                text: "*#{last_updated}\nLand | Infizierte | Todesfälle#{percentage_explanation}*",
-                parse_mode: "Markdown"
-              )
-
-              data = stats.map do |state, inf, inf_inc, dead, dead_inc|
-                [
-                  state,
-                  "#{inf} #{percent(inf_inc)}",
-                  "#{dead} #{percent(dead_inc)}"
-                ].compact
-              end
-
-              text = <<~MD
-                ```
-                #{MdTable.make(data: data)}
-                ```
-              MD
-
-              bot.api.send_message(
-                chat_id: message.chat.id,
-                text: text,
-                parse_mode: "Markdown"
-              )
+              async -> { handle_rki(bot, message) }
             when %r{^/zeit}
-              is_subscribed = redis.sismember "zeit_clients", message.chat.id
-              track(message.from, :zeit)
-
-              bot.api.send_message(
-                chat_id: message.chat.id,
-                text: "Die Zeit sagt... #{FACE_NAUSEATED}"
-              )
-
-              unless is_subscribed
-                bot.api.send_message(
-                  chat_id: message.chat.id,
-                  text: "/sub um Notifications zu erhalten"
-                )
-              end
-
-              data, last_updated = Source::DieZeit.new(redis: redis).fetch
-              data.map! do |country, con, con_inc, deaths, deaths_inc, rec, rec_inc|
-                [
-                  country,
-                  "#{con} #{percent(con_inc)}",
-                  "#{deaths} #{percent(deaths_inc)}",
-                  ("#{rec} #{percent(rec_inc)}" unless recovered_disabled)
-                ].compact
-              end
-
-              labels = %w[Land Infizierte Todesfälle]
-              labels << "Genesene" unless recovered_disabled
-              bot.api.send_message(
-                chat_id: message.chat.id,
-                text: "*#{last_updated}\n#{labels.join(' | ')}*",
-                parse_mode: "Markdown"
-              )
-
-              text = <<~MD
-                ```
-                #{MdTable.make(data: data)}
-                ```
-              MD
-
-              bot.api.send_message(
-                chat_id: message.chat.id,
-                text: text,
-                parse_mode: "Markdown"
-              )
+              async -> { handle_zeit(bot, message) }
             when %r{^/sub}
               kb = [
                 Telegram::Bot::Types::InlineKeyboardButton.new(text: "Robert Koch", callback_data: "sub_rki"),
@@ -216,14 +88,7 @@ module CovidBot
               markup = Telegram::Bot::Types::InlineKeyboardMarkup.new(inline_keyboard: kb)
               bot.api.send_message(chat_id: message.chat.id, text: "Alright. Which source do you want to stop receiving updates from?", reply_markup: markup)
             when %r{^/pref}
-              recovered_disabled = redis.hget("settings", message.chat.id).then { |h| h.nil? ? {} : JSON.parse(h) }.then { |h| h["recovered_disabled"] }
-              kb = if recovered_disabled
-                     [Telegram::Bot::Types::InlineKeyboardButton.new(text: "Enable the 'recovered' column", callback_data: "enable_recovered")]
-                   else
-                     [Telegram::Bot::Types::InlineKeyboardButton.new(text: "Disable the 'recovered' column (great for small devices)", callback_data: "disable_recovered")]
-                   end
-              markup = Telegram::Bot::Types::InlineKeyboardMarkup.new(inline_keyboard: kb)
-              bot.api.send_message(chat_id: message.chat.id, text: "What do you want to do?", reply_markup: markup)
+              bot.api.send_message(chat_id: message.chat.id, text: "Sorry, nothing here... yet")
             else
               text = <<~MD
                 ```
@@ -261,6 +126,144 @@ module CovidBot
     end
 
     private
+
+    def async(job)
+      Thread.new do
+        Raven.capture do
+          job.call
+        end
+      end
+    end
+
+    def handle_jhu(bot, message)
+      track(message.from, :jhu)
+
+      bot.api.send_message(
+        chat_id: message.chat.id,
+        text: "Johns Hopkins says... #{FACE_WITH_THERMOMETER}"
+      )
+
+      data, last_updated = Source::JohnsHopkins.new(redis: redis).fetch
+      labels = %w[Country Confirmed Deaths Recovered]
+      bot.api.send_message(
+        chat_id: message.chat.id,
+        text: "*Last updated at #{last_updated} \n#{labels.join(' | ')}\nPercentage: Compared to previous day*",
+        parse_mode: "Markdown"
+      )
+
+      data.map! do |country, con, con_inc, deaths, deaths_inc, rec, rec_inc|
+        [
+          country,
+          "#{con} #{percent(con_inc)}",
+          "#{deaths} #{percent(deaths_inc)}",
+          ("#{rec} #{percent(rec_inc)}")
+        ].compact
+      end
+
+      text = <<~MD
+        ```
+        #{MdTable.make(data: data)}
+        ```
+      MD
+
+      bot.api.send_message(
+        chat_id: message.chat.id,
+        text: text,
+        parse_mode: "Markdown"
+      )
+    end
+
+    def handle_zeit(bot, message)
+      track(message.from, :zeit)
+
+      is_subscribed = redis.sismember "zeit_clients", message.chat.id
+      bot.api.send_message(
+        chat_id: message.chat.id,
+        text: "Die Zeit sagt... #{FACE_NAUSEATED}"
+      )
+
+      unless is_subscribed
+        bot.api.send_message(
+          chat_id: message.chat.id,
+          text: "/sub um Notifications zu erhalten"
+        )
+      end
+
+      data, last_updated = Source::DieZeit.new(redis: redis).fetch
+      data.map! do |country, con, con_inc, deaths, deaths_inc, rec, rec_inc|
+        [
+          country,
+          "#{con} #{percent(con_inc)}",
+          "#{deaths} #{percent(deaths_inc)}",
+          ("#{rec} #{percent(rec_inc)}")
+        ].compact
+      end
+
+      labels = %w[Land Infizierte Todesfälle Genesene]
+      bot.api.send_message(
+        chat_id: message.chat.id,
+        text: "*#{last_updated}\n#{labels.join(' | ')}*",
+        parse_mode: "Markdown"
+      )
+
+      text = <<~MD
+        ```
+        #{MdTable.make(data: data)}
+        ```
+      MD
+
+      bot.api.send_message(
+        chat_id: message.chat.id,
+        text: text,
+        parse_mode: "Markdown"
+      )
+    end
+
+    def handle_rki(bot, message)
+      track(message.from, :rki)
+
+      is_subscribed = redis.sismember "clients", message.chat.id
+      bot.api.send_message(
+        chat_id: message.chat.id,
+        text: "Robert Koch sagt... #{FACE_WITH_MEDICAL_MASK}"
+      )
+
+      unless is_subscribed
+        bot.api.send_message(
+          chat_id: message.chat.id,
+          text: "/sub um Notifications zu erhalten"
+        )
+      end
+
+      stats, last_updated = Source::Rki.new(redis: redis).fetch
+
+      percentage_explanation = "\nProzente: Vergleich zum Vortag"
+      bot.api.send_message(
+        chat_id: message.chat.id,
+        text: "*#{last_updated}\nLand | Infizierte | Todesfälle#{percentage_explanation}*",
+        parse_mode: "Markdown"
+      )
+
+      data = stats.map do |state, inf, inf_inc, dead, dead_inc|
+        [
+          state,
+          "#{inf} #{percent(inf_inc)}",
+          "#{dead} #{percent(dead_inc)}"
+        ].compact
+      end
+
+      text = <<~MD
+        ```
+        #{MdTable.make(data: data)}
+        ```
+      MD
+
+      bot.api.send_message(
+        chat_id: message.chat.id,
+        text: text,
+        parse_mode: "Markdown"
+      )
+    end
 
     def percent(val)
       val.zero? ? "-" : "#{format('%+d', val)}%"

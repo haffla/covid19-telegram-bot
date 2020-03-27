@@ -52,9 +52,9 @@ module CovidBot
         end
 
         totals = csv.each_with_object([0, 0, 0]) do |r, carry|
-          carry[0] += r[3].to_i
-          carry[1] += r[4].to_i
-          carry[2] += r[5].to_i
+          carry[0] += r[7].to_i
+          carry[1] += r[8].to_i
+          carry[2] += r[9].to_i
         end
 
         [(["All"] + totals)] + top

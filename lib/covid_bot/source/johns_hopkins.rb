@@ -3,22 +3,15 @@
 module CovidBot
   module Source
     class JohnsHopkins < Base
-      attr_reader :redis
-
       def fetch(time: Time.now.utc)
-        resp = HTTParty.get(source_url(time))
-        while resp.code == 404
+        body = http_get source_url(time)
+        while body.nil?
           time -= 3600 * 24
-          resp = HTTParty.get(source_url(time))
+          body = http_get source_url(time)
         end
 
-        csv = CSV.parse(resp.body)
-
-        commits = JSON.parse(
-          HTTParty.get(
-            commit_url(time)
-          ).body
-        )
+        csv = CSV.parse(body)
+        commits = JSON.parse(http_get(commit_url(time)))
 
         last_updated = commits.first["commit"]["committer"]["date"].then do |d|
           Time.parse(d)

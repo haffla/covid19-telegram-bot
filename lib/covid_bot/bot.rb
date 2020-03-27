@@ -130,16 +130,14 @@ module CovidBot
     def async(meth, bot, message, source)
       Thread.new do
         Raven.capture do
-          begin
-            send meth, bot, message
-          rescue StandardError => e
-            bot.api.send_message(
-              chat_id: message.chat.id,
-              text: "*#{FACE_ROBOT} Fatal!\nI'm having trouble fetching data from #{source}. Please try again later.*",
-              parse_mode: "Markdown"
-            )
-            raise e
-          end
+          send meth, bot, message
+        rescue StandardError => e
+          bot.api.send_message(
+            chat_id: message.chat.id,
+            text: "*#{FACE_ROBOT} Fatal!\nI'm having trouble fetching data from #{source}. Please try again later.*",
+            parse_mode: "Markdown"
+          )
+          raise e
         end
       end
     end
@@ -165,7 +163,7 @@ module CovidBot
           country,
           "#{con} #{percent(con_inc)}",
           "#{deaths} #{percent(deaths_inc)}",
-          ("#{rec} #{percent(rec_inc)}")
+          "#{rec} #{percent(rec_inc)}"
         ].compact
       end
 
@@ -204,7 +202,7 @@ module CovidBot
           country,
           "#{con} #{percent(con_inc)}",
           "#{deaths} #{percent(deaths_inc)}",
-          ("#{rec} #{percent(rec_inc)}")
+          "#{rec} #{percent(rec_inc)}"
         ].compact
       end
 

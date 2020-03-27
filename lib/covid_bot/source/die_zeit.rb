@@ -5,9 +5,12 @@ module CovidBot
     class DieZeit < Base
       attr_reader :redis
 
-      def fetch(last_updated_only: false)
-        resp = HTTParty.get("https://interactive.zeit.de/cronjobs/2020/corona/bundeslaender-current.json")
-        json = JSON.parse(resp.body)
+      def source_url
+        "https://interactive.zeit.de/cronjobs/2020/corona/bundeslaender-current.json"
+      end
+
+      def fetch(last_updated_only: false, skip_cache: false)
+        json = JSON.parse(fetch_source(skip_cache: skip_cache))
         last_updated = json["lastUpdate"]
         return last_updated if last_updated_only
 

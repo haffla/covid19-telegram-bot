@@ -3,8 +3,33 @@
 module CovidBot
   module Source
     class Base
+      attr_reader :redis
+
       def initialize(redis:)
         @redis = redis
+      end
+
+      def http_get(source, skip_cache: false)
+        return HTTParty.get(source).body if skip_cache
+
+        redis.get(source).then do |res|
+          next res if res
+
+          resp = HTTParty.get(source)
+          next if resp.code >= 300
+
+          # cache 1 hour
+          redis.set source, resp.body, ex: 3600
+          resp.body
+        end
+      end
+
+      def fetch_source(skip_cache: false)
+        http_get source_url, skip_cache: skip_cache
+      end
+
+      def purge_cache
+        redis.del source_url
       end
 
       def with_comparison_to_previous(today, yesterday)

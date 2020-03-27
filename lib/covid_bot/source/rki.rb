@@ -5,20 +5,12 @@ module CovidBot
     class Rki < Base
       attr_reader :redis
 
-      URL = "https://www.rki.de/DE/Content/InfAZ/N/Neuartiges_Coronavirus/Fallzahlen.html"
+      def source_url
+        "https://www.rki.de/DE/Content/InfAZ/N/Neuartiges_Coronavirus/Fallzahlen.html"
+      end
 
-      def fetch(last_updated_only: false)
-        body = redis.get("RKI_BODY").then do |r|
-          if r.nil?
-            b = HTTParty.get(URL).body
-            redis.set("RKI_BODY", b, ex: 60 * 30)
-            b
-          else
-            r
-          end
-        end
-
-        doc = Nokogiri::HTML(body)
+      def fetch(last_updated_only: false, skip_cache: false)
+        doc = Nokogiri::HTML(fetch_source(skip_cache: skip_cache))
         last_updated = doc.at('h3:contains("Fallzahlen in Deutschland")').next_element.text
         return last_updated if last_updated_only
 

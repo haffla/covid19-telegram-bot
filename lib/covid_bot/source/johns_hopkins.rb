@@ -30,7 +30,7 @@ module CovidBot
         with_comparison_to_previous(data, redis.get(p_key)).then do |result|
           redis.set(time.strftime("%y.%m.%d") + "_ju", data.to_json)
           [
-            result.then { |r| r.first(15).uniq },
+            result.then { |r| r.first(26).uniq },
             last_updated.strftime("%d/%m/%Y %H:%M GMT")
           ]
         end

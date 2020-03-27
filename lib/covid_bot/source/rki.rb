@@ -19,7 +19,7 @@ module CovidBot
         end
 
         doc = Nokogiri::HTML(body)
-        last_updated = doc.at('h2:contains("Fallzahlen in Deutschland")').next_element.text
+        last_updated = doc.at('h3:contains("Fallzahlen in Deutschland")').next_element.text
         return last_updated if last_updated_only
 
         today = doc.css("table tbody tr").map do |tr|

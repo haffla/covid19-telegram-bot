@@ -23,7 +23,7 @@ module CovidBot
     end
 
     def poll
-      logger.info "#{FACE_ROBOT} Polling for updates"
+      logger.info "🤖 Polling for updates"
       poll_rki
       poll_zeit
     end
@@ -31,7 +31,7 @@ module CovidBot
     def poll_rki
       instance = Source::Rki.new(redis: redis)
       redis_key = "rki_last_updated_at"
-      message = "#{FACE_ROBOT} Das RKI hat neue Zahlen: /rki. Nervt? /unsub"
+      message = "🤖 Das RKI hat neue Zahlen: /rki. Nervt? /unsub"
       clients_key = "clients"
       do_poll(instance, redis_key, message, clients_key)
     end
@@ -39,7 +39,7 @@ module CovidBot
     def poll_zeit
       instance = Source::DieZeit.new(redis: redis)
       redis_key = "zeit_last_updated_at"
-      message = "#{FACE_ROBOT} Die Zeit hat neue Zahlen: /zeit. Nervt? /unsub"
+      message = "🤖 Die Zeit hat neue Zahlen: /zeit. Nervt? /unsub"
       clients_key = "zeit_clients"
       do_poll(instance, redis_key, message, clients_key)
     end

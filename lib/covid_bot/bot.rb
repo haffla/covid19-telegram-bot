@@ -136,7 +136,7 @@ module CovidBot
         rescue StandardError => e
           bot.api.send_message(
             chat_id: message.chat.id,
-            text: "*#{FACE_ROBOT} Fatal!\nI'm having trouble fetching data from #{source}. Please try again later.*",
+            text: "*🤖 Fatal!\nI'm having trouble fetching data from #{source}. Please try again later.*",
             parse_mode: "Markdown"
           )
           raise e
@@ -149,7 +149,7 @@ module CovidBot
 
       bot.api.send_message(
         chat_id: message.chat.id,
-        text: "Johns Hopkins says... #{FACE_WITH_THERMOMETER}"
+        text: "Johns Hopkins says... 🤒"
       )
 
       data, last_updated = Source::JohnsHopkins.new(redis: redis).fetch
@@ -188,7 +188,7 @@ module CovidBot
       is_subscribed = redis.sismember "zeit_clients", message.chat.id
       bot.api.send_message(
         chat_id: message.chat.id,
-        text: "Die Zeit sagt... #{FACE_NAUSEATED}"
+        text: "Die Zeit sagt... 🤧"
       )
 
       unless is_subscribed
@@ -234,7 +234,7 @@ module CovidBot
       is_subscribed = redis.sismember "clients", message.chat.id
       bot.api.send_message(
         chat_id: message.chat.id,
-        text: "Robert Koch sagt... #{FACE_WITH_MEDICAL_MASK}"
+        text: "Robert Koch sagt... 😷"
       )
 
       unless is_subscribed

@@ -4,7 +4,7 @@ module CovidBot
   module Source
     class DieZeit < Base
       def source_url
-        "https://interactive.zeit.de/cronjobs/2020/corona/bundeslaender-current.json"
+        "https://interactive.zeit.de/cronjobs/2020/corona/germany.json"
       end
 
       def fetch(last_updated_only: false)
@@ -16,8 +16,10 @@ module CovidBot
         states, last_updated, totals = with_data_cache do
           json = JSON.parse(fetch_source)
           last_updated = json["lastUpdate"]
-          data = json["states"].map do |s|
-            state, infected, recovered, deaths = s.values_at("state", "count", "recovered", "dead")
+          data = json["states"]["items"].map do |s|
+            state = s["name"]
+            current_stats = s["currentStats"]
+            infected, recovered, deaths = current_stats.values_at("count", "recovered", "dead")
             state = if state.include?("-")
                       state.split("-").map { |s| s[0] }.join("-")
                     else
@@ -25,7 +27,7 @@ module CovidBot
                     end
             [state, infected, deaths, recovered]
           end
-          [data, last_updated, json["totals"]]
+          [data, last_updated, json["currentStats"]]
         end
 
         last_updated = DateTime.parse(last_updated)

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-ruby "2.7.0"
+ruby "2.7.1"
 
 source "https://rubygems.org"
 
@@ -14,3 +14,4 @@ gem "sentry-raven"
 gem "si", require: "si/minimal"
 gem "telegram-bot-ruby", require: "telegram/bot"
 gem "zeitwerk", "~> 2.3"
+gem "rubocop", "~> 0.82.0", group: :development

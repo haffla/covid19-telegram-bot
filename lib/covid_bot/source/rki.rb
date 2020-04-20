@@ -7,13 +7,7 @@ module CovidBot
         "https://www.rki.de/DE/Content/InfAZ/N/Neuartiges_Coronavirus/Fallzahlen.html"
       end
 
-      def fetch(last_updated_only: false)
-        if last_updated_only
-          doc = Nokogiri::HTML(fetch_source)
-          last_updated = doc.at('h3:contains("Fallzahlen in Deutschland")').next_element.text
-          return last_updated
-        end
-
+      def fetch
         today, last_updated = with_data_cache do
           doc = Nokogiri::HTML(fetch_source)
           last_updated = doc.at('h3:contains("Fallzahlen in Deutschland")').next_element.text

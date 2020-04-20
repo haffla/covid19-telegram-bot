@@ -1,0 +1,13 @@
+# frozen_string_literal: true
+
+require "rubygems"
+require "bundler/setup"
+
+Bundler.require(:default)
+
+loader = Zeitwerk::Loader.new
+loader.push_dir("lib")
+loader.setup
+loader.eager_load if ENV["BOT_ENV"] == "production"
+
+$stdout.sync = true

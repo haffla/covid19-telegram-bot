@@ -26,6 +26,7 @@ module CovidBot
       logger.info "🤖 Polling for updates"
       poll_rki
       poll_zeit
+      poll_jhu
     end
 
     def poll_rki
@@ -44,8 +45,16 @@ module CovidBot
       do_poll(instance, redis_key, message, clients_key)
     end
 
+    def poll_jhu
+      instance = Source::JohnsHopkins.new(redis: redis)
+      redis_key = "jhu_last_updated_at"
+      message = "🤖 Johns Hopkins got new data: /jhu. Stop receiving notifications? /unsub"
+      clients_key = "jhu_clients"
+      do_poll(instance, redis_key, message, clients_key)
+    end
+
     def do_poll(instance, redis_key, message, clients_key)
-      last_updated = instance.fetch(last_updated_only: true)
+      last_updated = instance.fetch[1]
 
       redis.get(redis_key).then do |r|
         if r != last_updated

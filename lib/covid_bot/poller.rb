@@ -24,7 +24,7 @@ module CovidBot
 
     def poll
       logger.info "🤖 Polling for updates"
-      poll_rki
+      # poll_rki
       poll_zeit
       poll_jhu
     end

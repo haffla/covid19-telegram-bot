@@ -240,53 +240,47 @@ module CovidBot
     def handle_rki(bot, message)
       track(message.from, :rki)
 
+      is_subscribed = redis.sismember "clients", message.chat.id
       bot.api.send_message(
         chat_id: message.chat.id,
-        text: "Das RKI hat umgestellt und seine Daten scheinen erstmal nicht mehr von mir lesbar zu sein 😔\n\n"\
-        "Benutze derweilen /zeit\n\n"\
-        "https://www.rki.de/DE/Content/InfAZ/N/Neuartiges_Coronavirus/Fallzahlen.html"
+        text: "Robert Koch sagt... 😷"
       )
-#      is_subscribed = redis.sismember "clients", message.chat.id
-#      bot.api.send_message(
-#        chat_id: message.chat.id,
-#        text: "Robert Koch sagt... 😷"
-#      )
 
-#      unless is_subscribed
-#        bot.api.send_message(
-#          chat_id: message.chat.id,
-#          text: "/sub um Notifications zu erhalten"
-#        )
-#      end
+      unless is_subscribed
+        bot.api.send_message(
+          chat_id: message.chat.id,
+          text: "/sub um Notifications zu erhalten"
+        )
+      end
 
-#      stats, last_updated = Source::Rki.new(redis: redis).fetch
+      stats, last_updated = Source::Rki.new(redis: redis).fetch
 
-#      percentage_explanation = "\nProzente: Vergleich zum Vortag"
-#      bot.api.send_message(
-#        chat_id: message.chat.id,
-#        text: "*#{last_updated}\nLand | Infizierte | Todesfälle#{percentage_explanation}*",
-#        parse_mode: "Markdown"
-#      )
+      percentage_explanation = "\nProzente: Vergleich zum Vortag"
+      bot.api.send_message(
+        chat_id: message.chat.id,
+        text: "*#{last_updated}\nLand | Infizierte | Todesfälle#{percentage_explanation}*",
+        parse_mode: "Markdown"
+      )
 
-#      data = stats.map do |state, inf, inf_inc, dead, dead_inc|
-#        [
-#          state,
-#          "#{inf} #{percent(inf_inc)}",
-#          "#{dead} #{percent(dead_inc)}"
-#        ].compact
-#      end
+      data = stats.map do |state, inf, inf_inc, dead, dead_inc|
+        [
+          state,
+          "#{inf} #{percent(inf_inc)}",
+          "#{dead} #{percent(dead_inc)}"
+        ].compact
+      end
 
-#      text = <<~MD
-#        ```
-#        #{MdTable.make(data: data)}
-#        ```
-#      MD
+      text = <<~MD
+        ```
+        #{MdTable.make(data: data)}
+        ```
+      MD
 
-#      bot.api.send_message(
-#        chat_id: message.chat.id,
-#        text: text,
-#        parse_mode: "Markdown"
-#      )
+      bot.api.send_message(
+        chat_id: message.chat.id,
+        text: text,
+        parse_mode: "Markdown"
+      )
     end
 
     def percent(val)

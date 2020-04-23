@@ -242,7 +242,7 @@ module CovidBot
 
       bot.api.send_message(
         chat_id: message.chat.id,
-        text: "Das RKI und umgestellt und seine Daten scheinen erstmal nicht mehr von mir lesbar zu sein 😔\n\n"\
+        text: "Das RKI hat umgestellt und seine Daten scheinen erstmal nicht mehr von mir lesbar zu sein 😔\n\n"\
         "Benutze derweilen /zeit\n\n"\
         "https://www.rki.de/DE/Content/InfAZ/N/Neuartiges_Coronavirus/Fallzahlen.html"
       )

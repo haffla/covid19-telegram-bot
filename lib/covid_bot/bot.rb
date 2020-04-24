@@ -6,8 +6,8 @@ module CovidBot
 
     attr_reader :redis
 
-    def initialize(redis)
-      @redis = redis
+    def initialize
+      @redis = Redis.new
     end
 
     def run!

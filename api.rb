@@ -48,14 +48,15 @@ class Application
   end
 
   def start_bot
-    Raven.capture do
-      CovidBot::Bot.new(redis).run!
-    end
+  end
+end
+
+Process.fork do
+  Raven.capture do
+    CovidBot::Bot.new.run!
   end
 end
 
 Raven.capture do
-  app = Application.new
-  Thread.new { app.start_bot }
-  Rack::Handler::WEBrick.run app, Port: ENV["PORT"] || 9292
+  Rack::Handler::WEBrick.run Application.new, Port: ENV["PORT"] || 9292
 end

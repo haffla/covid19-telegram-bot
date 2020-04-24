@@ -46,9 +46,6 @@ class Application
       }
     }.to_json
   end
-
-  def start_bot
-  end
 end
 
 Process.fork do

@@ -1,9 +1,6 @@
 # frozen_string_literal: true
 
-require "rack"
-require "redis"
-require "json"
-require "date"
+require "./environment"
 
 class Application
   attr_reader :redis
@@ -49,6 +46,16 @@ class Application
       }
     }.to_json
   end
+
+  def start_bot
+    Raven.capture do
+      CovidBot::Bot.new(redis).run!
+    end
+  end
 end
 
-Rack::Handler::WEBrick.run Application.new, Port: ENV["PORT"] || 9292
+Raven.capture do
+  app = Application.new
+  Thread.new { app.start_bot }
+  Rack::Handler::WEBrick.run app, Port: ENV["PORT"] || 9292
+end

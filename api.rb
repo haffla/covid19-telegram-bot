@@ -48,7 +48,7 @@ class Application
   end
 end
 
-Process.fork do
+Thread.new do
   Raven.capture do
     CovidBot::Bot.new.run!
   end

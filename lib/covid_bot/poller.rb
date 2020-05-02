@@ -23,6 +23,9 @@ module CovidBot
     end
 
     def poll
+      hour = DateTime.now.hour
+      return if hour > 22 || hour < 2
+
       logger.info "🤖 Polling for updates"
       poll_rki
       poll_zeit

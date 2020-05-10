@@ -4,7 +4,6 @@ ruby "2.7.1"
 
 source "https://rubygems.org"
 
-gem "countries"
 gem "httparty", "~> 0.18.0"
 gem "nokogiri", "~> 1.10"
 gem "rack", "~> 2.2"

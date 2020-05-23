@@ -254,7 +254,7 @@ module CovidBot
 
       stats, last_updated = Source::Rki.new(redis: redis).fetch
 
-      percentage_explanation = "\nProzente: Vergleich zum Vortag"
+      percentage_explanation = "\nIn Klammern: Vergleich zum Vortag"
       bot.api.send_message(
         chat_id: message.chat.id,
         text: "*#{last_updated}\nLand | Infizierte | Todesfälle#{percentage_explanation}*",
@@ -264,8 +264,8 @@ module CovidBot
       data = stats.map do |state, inf, inf_inc, dead, dead_inc|
         [
           state,
-          "#{inf} #{percent(inf_inc)}",
-          "#{dead} #{percent(dead_inc)}"
+          "#{inf} (#{sprintf("%+d", inf_inc)})",
+          "#{dead} (#{sprintf("%+d", dead_inc)})"
         ].compact
       end
 

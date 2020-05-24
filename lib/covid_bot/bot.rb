@@ -212,7 +212,7 @@ module CovidBot
           country,
           "#{display(con)} (#{display(con_inc, prefix: true)})",
           "#{display(deaths)} (#{display(deaths_inc, prefix: true)})",
-          "#{rec} (#{rec_inc})"
+          "#{display(rec)} (#{display(rec_inc, prefix: true)})"
         ].compact
       end
 
@@ -288,7 +288,7 @@ module CovidBot
              else
                "+"
              end
-      formatted = val >= 10_000 ? SI.convert(val) : val
+      formatted = val >= 9_999 ? SI.convert(val) : val
       prefix ? sign + formatted.to_s : formatted
     end
 

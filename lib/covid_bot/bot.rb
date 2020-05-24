@@ -172,8 +172,8 @@ module CovidBot
       data.map! do |country, con, con_inc, deaths, deaths_inc|
         [
           country,
-          "#{con} (#{con_inc})",
-          "#{deaths} (#{deaths_inc})"
+          "#{display(con)} (#{display(con_inc, prefix: true)})",
+          "#{display(deaths)} (#{display(deaths_inc, prefix: true)})"
         ].compact
       end
 
@@ -210,9 +210,9 @@ module CovidBot
       data.map! do |country, con, con_inc, deaths, deaths_inc, rec, rec_inc|
         [
           country,
-          "#{con} #{percent(con_inc)}",
-          "#{deaths} #{percent(deaths_inc)}",
-          "#{rec} #{percent(rec_inc)}"
+          "#{display(con)} (#{display(con_inc, prefix: true)})",
+          "#{display(deaths)} (#{display(deaths_inc, prefix: true)})",
+          "#{rec} (#{rec_inc})"
         ].compact
       end
 
@@ -264,8 +264,8 @@ module CovidBot
       data = stats.map do |state, inf, inf_inc, dead, dead_inc|
         [
           state,
-          "#{inf} (#{sprintf("%+d", inf_inc)})",
-          "#{dead} (#{sprintf("%+d", dead_inc)})"
+          "#{display(inf)} (#{display(inf_inc, prefix: true)})",
+          "#{display(dead)} (#{display(dead_inc, prefix: true)})"
         ].compact
       end
 
@@ -282,8 +282,14 @@ module CovidBot
       )
     end
 
-    def percent(val)
-      val.zero? ? "-" : "#{format('%+d', val)}%"
+    def display(val, prefix: false)
+      sign = if val.zero? || val.negative?
+               ""
+             else
+               "+"
+             end
+      formatted = val >= 10_000 ? SI.convert(val) : val
+      prefix ? sign + formatted.to_s : formatted
     end
 
     def track(from, source)

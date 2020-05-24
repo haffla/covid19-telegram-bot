@@ -22,10 +22,6 @@ module CovidBot
         redis.del source_url
       end
 
-      def to_sti(val)
-        val >= 10_000 ? SI.convert(val) : val
-      end
-
       def with_comparison_to_previous(today, yesterday)
         y_hist = yesterday.then do |h|
           if h.nil?
@@ -40,8 +36,8 @@ module CovidBot
 
           numbers.zip(y_numbers).flat_map do |t, y|
             [
-              to_sti(t),
-              to_sti(t - y)
+              t,
+              t - y
             ]
           end.then { |res| [state, *res] }
         end

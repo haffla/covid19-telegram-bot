@@ -165,15 +165,15 @@ module CovidBot
       labels = %w[Country Confirmed Deaths]
       bot.api.send_message(
         chat_id: message.chat.id,
-        text: "*Last updated at #{last_updated} \n#{labels.join(' | ')}\nPercentage: Compared to previous day*",
+        text: "*Last updated at #{last_updated} \n#{labels.join(' | ')}\nIn parentheses: Compared to previous day*",
         parse_mode: "Markdown"
       )
 
       data.map! do |country, con, con_inc, deaths, deaths_inc|
         [
           country,
-          "#{con} #{percent(con_inc)}",
-          "#{deaths} #{percent(deaths_inc)}"
+          "#{con} (#{con_inc})",
+          "#{deaths} (#{deaths_inc})"
         ].compact
       end
 

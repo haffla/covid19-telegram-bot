@@ -37,7 +37,7 @@ module CovidBot
           numbers.zip(y_numbers).flat_map do |t, y|
             [
               t,
-              t - y
+              y ? t - y : nil
             ]
           end.then { |res| [state, *res] }
         end

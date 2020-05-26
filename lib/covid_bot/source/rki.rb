@@ -12,15 +12,13 @@ module CovidBot
           doc = Nokogiri::HTML(fetch_source)
           last_updated = doc.at('h3:contains("Fallzahlen in Deutschland")').next_element.text
           today = doc.css("table tbody tr").map do |tr|
-            tr.children.first(6).filter_map { |e| e.children.first&.text }
+            tr.children.map { |e| e.text }
           end.map do |state, inf, _, _, _, deaths|
             infected = inf&.gsub(".", "").to_i
             deaths = deaths&.gsub(".", "").to_i
-            state = if state.include?("-")
-                      state.split("-").map { |s| s[0] }.join("-")
-                    else
-                      state[0..2]
-                    end
+            state = state.scan(/[A-Z]/).then do |capitals|
+              capitals.size == 2 ? capitals.join("-") : state[0..2]
+            end
             [state, infected, deaths]
           end
 

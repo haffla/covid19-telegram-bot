@@ -283,7 +283,9 @@ module CovidBot
     end
 
     def display(val, prefix: false)
-      sign = if val.zero? || val.negative?
+      return "-" if val.nil?
+
+      sign = if val.nil? || val.zero? || val.negative?
                ""
              else
                "+"

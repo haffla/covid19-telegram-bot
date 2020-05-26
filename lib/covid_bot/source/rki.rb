@@ -13,7 +13,7 @@ module CovidBot
           last_updated = doc.at('h3:contains("Fallzahlen in Deutschland")').next_element.text
           today = doc.css("table tbody tr").map do |tr|
             tr.children.first(5).filter_map { |e| e.children.first&.text }
-          end.map do |state, inf, _, _, deaths|
+          end.map do |state, inf, _, _, _, deaths|
             infected = inf&.gsub(".", "").to_i
             deaths = deaths&.gsub(".", "").to_i
             state = if state.include?("-")

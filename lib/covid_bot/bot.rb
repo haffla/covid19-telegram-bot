@@ -140,6 +140,11 @@ module CovidBot
       Thread.new do
         time = Time.now.to_f
         Raven.capture do
+          bot.api.send_chat_action(
+            chat_id: message.chat.id,
+            action: "typing"
+          )
+          sleep 1
           send meth, bot, message
           logger.debug "Took #{(Time.now.to_f - time).round(2)} seconds"
         rescue StandardError => e
@@ -155,11 +160,6 @@ module CovidBot
 
     def handle_jhu(bot, message)
       track(message.from, :jhu)
-
-      bot.api.send_message(
-        chat_id: message.chat.id,
-        text: "Johns Hopkins says... 🤒"
-      )
 
       data, last_updated = Source::JohnsHopkins.new(redis: redis).fetch
       labels = %w[Country Confirmed Deaths]
@@ -193,19 +193,6 @@ module CovidBot
     def handle_zeit(bot, message)
       track(message.from, :zeit)
 
-      is_subscribed = redis.sismember "zeit_clients", message.chat.id
-      bot.api.send_message(
-        chat_id: message.chat.id,
-        text: "Die Zeit sagt... 🤧"
-      )
-
-      unless is_subscribed
-        bot.api.send_message(
-          chat_id: message.chat.id,
-          text: "/sub um Notifications zu erhalten"
-        )
-      end
-
       data, last_updated = Source::DieZeit.new(redis: redis).fetch
       data.map! do |country, con, con_inc, deaths, deaths_inc, rec, rec_inc|
         [
@@ -234,23 +221,17 @@ module CovidBot
         text: text,
         parse_mode: "Markdown"
       )
-    end
 
-    def handle_rki(bot, message)
-      track(message.from, :rki)
-
-      is_subscribed = redis.sismember "clients", message.chat.id
-      bot.api.send_message(
-        chat_id: message.chat.id,
-        text: "Robert Koch sagt... 😷"
-      )
-
-      unless is_subscribed
+      unless redis.sismember("zeit_clients", message.chat.id)
         bot.api.send_message(
           chat_id: message.chat.id,
           text: "/sub um Notifications zu erhalten"
         )
       end
+    end
+
+    def handle_rki(bot, message)
+      track(message.from, :rki)
 
       stats, last_updated = Source::Rki.new(redis: redis).fetch
 
@@ -280,6 +261,14 @@ module CovidBot
         text: text,
         parse_mode: "Markdown"
       )
+
+      is_subscribed = redis.sismember "clients", message.chat.id
+      unless is_subscribed
+        bot.api.send_message(
+          chat_id: message.chat.id,
+          text: "/sub um Notifications zu erhalten"
+        )
+      end
     end
 
     def display(val, prefix: false)

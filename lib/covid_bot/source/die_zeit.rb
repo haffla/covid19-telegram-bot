@@ -14,26 +14,20 @@ module CovidBot
           data = json["states"]["items"].map do |s|
             state = s["name"]
             current_stats = s["currentStats"]
-            infected, recovered, deaths = current_stats.values_at("count", "recovered", "dead")
+            infected, deaths, active = current_stats.values_at("count", "dead", "active")
             state = if state.include?("-")
                       state.split("-").map { _1[0] }.join("-")
                     else
                       state[..2]
                     end
-            [state, infected, deaths, recovered]
+            [state, infected, deaths, active]
           end
-          [data, last_updated, json["currentStats"]]
+          [data, DateTime.parse(last_updated), json["currentStats"]]
         end
 
-        last_updated = DateTime.parse(last_updated)
-        t_inf, t_deaths, t_rec = totals.values_at("count", "dead", "recovered")
-        states << ["Ges", t_inf, t_deaths, t_rec]
-        y_key = (last_updated - 1).strftime("%d.%m.%y") + "_zeit"
-        with_comparison_to_previous(states, redis.get(y_key)).then do |res|
-          k = last_updated.strftime("%d.%m.%y") + "_zeit"
-          redis.set(k, states.to_json)
-          [res, last_updated.strftime("%d.%m.%Y %H:%M")]
-        end
+        t_inf, t_deaths, t_active = totals.values_at("count", "dead", "active")
+        states << ["Ges", t_inf, t_deaths, t_active]
+        [sorted(states), last_updated]
       end
     end
   end

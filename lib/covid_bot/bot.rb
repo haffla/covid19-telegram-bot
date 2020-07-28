@@ -194,16 +194,16 @@ module CovidBot
       track(message.from, :zeit)
 
       data, last_updated = Source::DieZeit.new(redis: redis).fetch
-      data.map! do |country, con, con_inc, deaths, deaths_inc, rec, rec_inc|
+      data.map! do |country, con, deaths, active|
         [
           country,
-          "#{display(con)} (#{display(con_inc, prefix: true)})",
-          "#{display(deaths)} (#{display(deaths_inc, prefix: true)})",
-          "#{display(rec)} (#{display(rec_inc, prefix: true)})"
-        ].compact
+          "#{display(con)}",
+          "#{display(deaths)}",
+          "#{display(active)}"
+        ]
       end
 
-      labels = %w[Land Infizierte Todesfälle Genesene]
+      labels = ["Land", "Infizierte Total", "Todesfälle", "Derzeit Infizierte"]
       bot.api.send_message(
         chat_id: message.chat.id,
         text: "*#{last_updated}\n#{labels.join(' | ')}*",

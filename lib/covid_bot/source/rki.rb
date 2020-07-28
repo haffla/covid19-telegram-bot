@@ -13,25 +13,17 @@ module CovidBot
           last_updated = doc.at('h3:contains("Fallzahlen in Deutschland")').next_element.text
           today = doc.css("table tbody tr").map do |tr|
             tr.children.map { |e| e.text }
-          end.map do |state, inf, _, _, _, deaths|
+          end.map do |state, inf, inf_delta, _, _, deaths|
             infected = inf&.gsub(".", "").to_i
+            infected_delta = inf_delta.gsub("+", "").to_i
             deaths = deaths&.gsub(".", "").to_i
             state = state.scan(/[A-Z]/).then do |capitals|
               capitals.size == 2 ? capitals.join("-") : state[0..2]
             end
-            [state, infected, deaths]
+            [state, infected, infected_delta, deaths]
           end
 
           [today, last_updated]
-        end
-
-        last_updated_ts = last_updated.scan(/\d+\.\d+\.\d+/).first
-        last_updated_ts = Date.parse(last_updated_ts).to_time
-        # under this key stats from yesterday are saved
-        y_key = (last_updated_ts - 3600 * 24).strftime("%y.%m.%d") + "_rki"
-        with_comparison_to_previous(today, redis.get(y_key)).then do |result|
-          redis.set(last_updated_ts.strftime("%y.%m.%d") + "_rki", today.to_json)
-          [result, last_updated]
         end
       end
     end

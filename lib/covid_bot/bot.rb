@@ -242,11 +242,11 @@ module CovidBot
         parse_mode: "Markdown"
       )
 
-      data = stats.map do |state, inf, inf_inc, dead, dead_inc|
+      data = stats.map do |state, inf, inf_inc, dead|
         [
           state,
           "#{display(inf)} (#{display(inf_inc, prefix: true)})",
-          "#{display(dead)} (#{display(dead_inc, prefix: true)})"
+          "#{display(dead)}"
         ].compact
       end
 

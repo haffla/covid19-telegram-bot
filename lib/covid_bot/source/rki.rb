@@ -23,8 +23,10 @@ module CovidBot
             [state, infected, infected_delta, deaths]
           end
 
-          [sorted(data), last_updated]
+          [data, last_updated]
         end
+
+        [sorted(today), last_updated]
       end
     end
   end

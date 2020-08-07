@@ -15,7 +15,7 @@ module CovidBot
             tr.children.map { |e| e.text }
           end.map do |state, inf, inf_delta, _, _, deaths|
             infected = inf&.gsub(".", "").to_i
-            infected_delta = inf_delta.gsub("+", "").to_i
+            infected_delta = inf_delta.gsub(/[\+\.]/, "").to_i
             deaths = deaths&.gsub(".", "").to_i
             state = state.scan(/[A-Z]/).then do |capitals|
               capitals.size == 2 ? capitals.join("-") : state[0..2]

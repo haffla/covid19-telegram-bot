@@ -49,7 +49,8 @@ module CovidBot
       end
 
       def source_url
-        "https://coronavirus-tracker-api.herokuapp.com/v2/locations?timelines=1"
+        # currently https://covid-tracker-us.herokuapp.com but could be deployed elsewhere
+        ENV["JOHNS_HOPKINS_API_BASE_URL"] + "/v2/locations?timelines=1"
       end
     end
   end

@@ -10,7 +10,7 @@ module CovidBot
       def fetch
         today, last_updated = with_data_cache do
           doc = Nokogiri::HTML(fetch_source)
-          last_updated = doc.at('h3:contains("Fallzahlen in Deutschland")').next_element.text
+          last_updated = doc.at('h2:contains("Fallzahlen in Deutschland")').next_element.text
           data = doc.css("table tbody tr").map do |tr|
             tr.children.map { |e| e.text }
           end.map do |state, inf, inf_delta, _, _, deaths|

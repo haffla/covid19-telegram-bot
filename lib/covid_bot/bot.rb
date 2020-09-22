@@ -238,15 +238,15 @@ module CovidBot
       percentage_explanation = "\nIn Klammern: Vergleich zum Vortag"
       bot.api.send_message(
         chat_id: message.chat.id,
-        text: "*#{last_updated}\nLand | Infizierte | Todesfälle#{percentage_explanation}*",
+        text: "*#{last_updated}\nLand | Infizierte | 7-Tage-Inzidenz#{percentage_explanation}*",
         parse_mode: "Markdown"
       )
 
-      data = stats.map do |state, inf, inf_inc, dead|
+      data = stats.map do |state, inf, inf_inc, seven_day_i|
         [
           state,
           "#{display(inf)} (#{display(inf_inc, prefix: true)})",
-          "#{display(dead)}"
+          "#{display(seven_day_i)}"
         ].compact
       end
 

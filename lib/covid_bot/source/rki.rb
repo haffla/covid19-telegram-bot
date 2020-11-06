@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "date"
-
 module CovidBot
   module Source
     class Rki < Base
@@ -56,6 +54,11 @@ module CovidBot
 
       def url_new_cases
         "https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/RKI_COVID19/FeatureServer/0/query?where=NeuerFall+IN%281%2C+-1%29&objectIds=&time=&resultType=standard&outFields=*&returnIdsOnly=false&returnUniqueIdsOnly=false&returnCountOnly=false&returnDistinctValues=false&cacheHint=true&orderByFields=&groupByFieldsForStatistics=Bundesland&outStatistics=%5B%7B%22statisticType%22%3A%22sum%22%2C%22onStatisticField%22%3A%22AnzahlFall%22%2C%22outStatisticFieldName%22%3A%22value%22%7D%5D&having=&resultOffset=&resultRecordCount=&sqlFormat=none&f=pjson"
+      end
+
+      def purge_cache
+        super(url_bunderlaender)
+        super(url_new_cases)
       end
     end
   end

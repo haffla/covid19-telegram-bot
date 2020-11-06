@@ -18,13 +18,13 @@ module CovidBot
         http_get url
       end
 
-      def purge_cache
-        redis.del source_url
+      def purge_cache(url = source_url)
+        redis.del url
       end
 
       def with_data_cache(url = source_url)
         redis.get(url).then do |data|
-          next JSON.parse(data) if data
+          # next JSON.parse(data) if data
 
           data = yield
           redis.set(url, data.to_json, ex: 3600)

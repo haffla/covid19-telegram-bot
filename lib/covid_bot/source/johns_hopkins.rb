@@ -40,9 +40,8 @@ module CovidBot
           top.sum { |c| c[1] },
           top.sum { |c| c[2] },
           top.sum { |c| c[3] },
-          top.sum { |c| c[4] },
+          top.sum { |c| c[4] }
         ]
-
 
         last_updated_location = json["locations"].max_by { |l| Time.parse(l["last_updated"]) }
         [[totals] + top, last_updated_location["last_updated"]]

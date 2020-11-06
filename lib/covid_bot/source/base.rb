@@ -14,20 +14,20 @@ module CovidBot
         return resp.body if resp.code < 300
       end
 
-      def fetch_source
-        http_get source_url
+      def fetch_source(url = source_url)
+        http_get url
       end
 
       def purge_cache
         redis.del source_url
       end
 
-      def with_data_cache
-        redis.get(source_url).then do |data|
+      def with_data_cache(url = source_url)
+        redis.get(url).then do |data|
           next JSON.parse(data) if data
 
           data = yield
-          redis.set(source_url, data.to_json, ex: 3600)
+          redis.set(url, data.to_json, ex: 3600)
           data
         end
       end

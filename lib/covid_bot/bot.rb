@@ -197,9 +197,9 @@ module CovidBot
       data.map! do |country, con, deaths, active|
         [
           country,
-          "#{display(con)}",
-          "#{display(deaths)}",
-          "#{display(active)}"
+          display(con).to_s,
+          display(deaths).to_s,
+          display(active).to_s
         ]
       end
 
@@ -246,7 +246,7 @@ module CovidBot
         [
           state,
           "#{display(inf)} (#{display(inf_inc, prefix: true)})",
-          "#{display(seven_day_i)}"
+          display(seven_day_i).to_s
         ].compact
       end
 

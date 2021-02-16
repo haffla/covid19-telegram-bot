@@ -1,8 +1,5 @@
-Layout/LineLength:
-  Max: 120
-
-Metrics/MethodLength: 
-  Max: 20
+AllCops:
+  NewCops: enable
 
 Metrics/ClassLength:
   Max: 1500
@@ -25,5 +22,27 @@ Style/Documentation:
 Style/FormatStringToken:
   Enabled: false
 
+Metrics/CyclomaticComplexity:
+  Enabled: false
+
+Metrics/MethodLength:
+  Enabled: false
+
 Metrics/AbcSize:
-  Max: 30
+  Enabled: false
+
+Style/AsciiComments:
+  Enabled: false
+
+Layout/LineLength:
+  Enabled: false
+
+
+Metrics/PerceivedComplexity:
+  Enabled: false
+
+Style/MultilineBlockChain:
+  Enabled: false
+
+Metrics/BlockLength:
+  Enabled: false

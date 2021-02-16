@@ -10,27 +10,30 @@ module CovidBot
         total_population = 0
         total_cases_last_seven_days = 0
 
-        bl_data = with_data_cache(url_bunderlaender) do
-          json = JSON.parse(fetch_source(url_bunderlaender))
-          bls = json["features"].map do |feat|
-            bl, cases, updated, seven_day_i, population = feat["attributes"].values_at("LAN_ew_GEN", "Fallzahl", "Aktualisierung", "cases7_bl_per_100k", "LAN_ew_EWZ")
-            population_factor = population.to_d / 100_000
-            total_cases += cases
-            updated /= 1000
-            last_updated = updated > last_updated ? updated : last_updated
-            total_population += population
-            total_cases_last_seven_days += (population_factor * seven_day_i)
-            [bl, cases, seven_day_i.round(1)]
-          end
+        json = with_data_cache(url_bundeslaender) do
+          JSON.parse(fetch_source(url_bundeslaender))
         end
 
-        with_data_cache(url_new_cases) do
-          json = JSON.parse(fetch_source(url_new_cases))
-          json["features"].each do |feat|
-            delta, bundesland = feat["attributes"].values_at("value", "Bundesland")
-            total_delta += delta
-            bl_data.detect { |bl| bl.first == bundesland }.insert(2, delta)
-          end
+        bl_data = json["features"].map do |feat|
+          bl, cases, updated, seven_day_i, population = feat["attributes"].values_at("LAN_ew_GEN", "Fallzahl",
+                                                                                     "Aktualisierung", "cases7_bl_per_100k", "LAN_ew_EWZ")
+          population_factor = population.to_d / 100_000
+          total_cases += cases
+          updated /= 1000
+          last_updated = updated > last_updated ? updated : last_updated
+          total_population += population
+          total_cases_last_seven_days += (population_factor * seven_day_i)
+          [bl, cases, seven_day_i.round(1)]
+        end
+
+        json = with_data_cache(url_new_cases) do
+          JSON.parse(fetch_source(url_new_cases))
+        end
+
+        json["features"].each do |feat|
+          delta, bundesland = feat["attributes"].values_at("value", "Bundesland")
+          total_delta += delta
+          bl_data.detect { |bl| bl.first == bundesland }.insert(2, delta)
         end
 
         population_factor = total_population / 100_000
@@ -44,11 +47,11 @@ module CovidBot
           end
         end
 
-        updated = "Aktualisierung: " + Time.at(last_updated).to_datetime.strftime("%d.%m.%Y")
+        updated = "Aktualisierung: #{Time.at(last_updated).to_datetime.strftime('%d.%m.%Y')}"
         [sorted(bl_data), updated]
       end
 
-      def url_bunderlaender
+      def url_bundeslaender
         "https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/Coronaf%C3%A4lle_in_den_Bundesl%C3%A4ndern/FeatureServer/0/query?where=1%3D1&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&resultType=none&distance=0.0&units=esriSRUnit_Meter&returnGeodetic=false&outFields=*&returnGeometry=false&returnCentroid=false&featureEncoding=esriDefault&multipatchOption=xyFootprint&maxAllowableOffset=&geometryPrecision=&outSR=&datumTransformation=&applyVCSProjection=false&returnIdsOnly=false&returnUniqueIdsOnly=false&returnCountOnly=false&returnExtentOnly=false&returnQueryGeometry=false&returnDistinctValues=false&cacheHint=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&having=&resultOffset=&resultRecordCount=&returnZ=false&returnM=false&returnExceededLimitFeatures=true&quantizationParameters=&sqlFormat=none&f=pjson"
       end
 
@@ -57,7 +60,7 @@ module CovidBot
       end
 
       def purge_cache
-        super(url_bunderlaender)
+        super(url_bundeslaender)
         super(url_new_cases)
       end
     end

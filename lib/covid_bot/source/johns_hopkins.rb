@@ -4,7 +4,6 @@ module CovidBot
   module Source
     class JohnsHopkins < Base
       def fetch
-        time = Time.now.utc
         data, last_updated = with_data_cache do
           json = JSON.parse(fetch_source)
           process(json)
@@ -49,7 +48,7 @@ module CovidBot
 
       def source_url
         # currently https://covid-tracker-us.herokuapp.com but could be deployed elsewhere
-        ENV["JOHNS_HOPKINS_API_BASE_URL"] + "/v2/locations?timelines=1"
+        "#{ENV.fetch('JOHNS_HOPKINS_API_BASE_URL')}/v2/locations?timelines=1"
       end
     end
   end

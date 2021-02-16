@@ -22,10 +22,12 @@ module CovidBot
             case message.data
             when "sub_rki"
               redis.sadd "clients", id
-              bot.api.send_message(chat_id: id, text: "Don't sweat it. You're subscribed to updates from RKI. /unsub if you change your mind.")
+              bot.api.send_message(chat_id: id,
+                                   text: "Don't sweat it. You're subscribed to updates from RKI. /unsub if you change your mind.")
             when "sub_zeit"
               redis.sadd "zeit_clients", id
-              bot.api.send_message(chat_id: id, text: "Die Zeit heilt alle Wunden. /unsub in case you want to stop receiving updates.")
+              bot.api.send_message(chat_id: id,
+                                   text: "Die Zeit heilt alle Wunden. /unsub in case you want to stop receiving updates.")
             when "sub_jhu"
               redis.sadd "jhu_clients", id
               bot.api.send_message(chat_id: id, text: "Johns Hopkins won't let you down!")
@@ -87,7 +89,8 @@ module CovidBot
                 Telegram::Bot::Types::InlineKeyboardButton.new(text: "Johns Hopkins", callback_data: "sub_jhu")
               ]
               markup = Telegram::Bot::Types::InlineKeyboardMarkup.new(inline_keyboard: kb)
-              bot.api.send_message(chat_id: message.chat.id, text: "Which stats do you want to get updates for?", reply_markup: markup)
+              bot.api.send_message(chat_id: message.chat.id, text: "Which stats do you want to get updates for?",
+                                   reply_markup: markup)
             when %r{^/unsub}
               kb = [
                 Telegram::Bot::Types::InlineKeyboardButton.new(text: "Robert Koch", callback_data: "unsub_rki"),
@@ -95,7 +98,8 @@ module CovidBot
                 Telegram::Bot::Types::InlineKeyboardButton.new(text: "Johns Hopkins", callback_data: "unsub_jhu")
               ]
               markup = Telegram::Bot::Types::InlineKeyboardMarkup.new(inline_keyboard: kb)
-              bot.api.send_message(chat_id: message.chat.id, text: "Alright. Which source do you want to stop receiving updates from?", reply_markup: markup)
+              bot.api.send_message(chat_id: message.chat.id,
+                                   text: "Alright. Which source do you want to stop receiving updates from?", reply_markup: markup)
             when %r{^/pref}
               bot.api.send_message(chat_id: message.chat.id, text: "Sorry, nothing here... yet")
             else
@@ -113,7 +117,7 @@ module CovidBot
 
               text = message.text.gsub("_", "-")
               text = if text.size > 20
-                       text[0..20] + "..."
+                       "#{text[0..20]}..."
                      else
                        text
                      end
@@ -222,12 +226,12 @@ module CovidBot
         parse_mode: "Markdown"
       )
 
-      unless redis.sismember("zeit_clients", message.chat.id)
-        bot.api.send_message(
-          chat_id: message.chat.id,
-          text: "/sub um Notifications zu erhalten"
-        )
-      end
+      return if redis.sismember("zeit_clients", message.chat.id)
+
+      bot.api.send_message(
+        chat_id: message.chat.id,
+        text: "/sub um Notifications zu erhalten"
+      )
     end
 
     def handle_rki(bot, message)
@@ -262,13 +266,12 @@ module CovidBot
         parse_mode: "Markdown"
       )
 
-      is_subscribed = redis.sismember "clients", message.chat.id
-      unless is_subscribed
-        bot.api.send_message(
-          chat_id: message.chat.id,
-          text: "/sub um Notifications zu erhalten"
-        )
-      end
+      return if redis.sismember "clients", message.chat.id
+
+      bot.api.send_message(
+        chat_id: message.chat.id,
+        text: "/sub um Notifications zu erhalten"
+      )
     end
 
     def display(val, prefix: false)

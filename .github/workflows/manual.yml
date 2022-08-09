@@ -22,6 +22,7 @@ jobs:
         gh pr list --app dependabot | cut -f3 | while read dependabot_branch
         do
           git rebase $BRANCH origin/$dependabot_branch
+          git switch -C $BRANCH
         done
 
         git push --force origin $BRANCH

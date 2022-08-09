@@ -14,13 +14,14 @@ jobs:
         git config user.email "<>"
     - name: Integrate dependabot PRs
       run: |
+        git fetch --all
         DATE=$(date '+%Y-%m-%d')
         BRANCH="dependabot-$DATE"
         git checkout -b $BRANCH
 
         gh pr list --app dependabot | cut -f3 | while read branch
         do
-          git pull --ff origin $branch
+          git merge --no-ff --no-edit $branch
         done
 
         git push origin $BRANCH

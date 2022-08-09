@@ -2,9 +2,9 @@ name: Manual workflow
 on: workflow_dispatch
 
 jobs:
-  env:
-    GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   check:
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3

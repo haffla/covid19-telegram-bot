@@ -12,15 +12,15 @@ jobs:
       run: |
         git config user.name "GitHub Actions Bot"
         git config user.email "<>"
-    - run: |
-        git fetch origin
+    - name: Integrate dependabot PRs
+      run: |
         DATE=$(date '+%Y-%m-%d')
         BRANCH="dependabot-$DATE"
-        git checkout -b $BRANCH &> /dev/null
+        git checkout -b $BRANCH
 
         gh pr list --app dependabot | cut -f3 | while read branch
         do
-          git pull origin $branch
+          git pull --ff-only origin $branch
         done
 
         git push origin $BRANCH

@@ -13,7 +13,7 @@ jobs:
         git config user.name "GitHub Actions Bot"
         git config user.email "<>"
     - run: |
-        TEMP_FILE=branches-to-deploy
+        TEMP_FILE=/tmp/branches-to-deploy
         gh pr list --app dependabot | grep "^\d" | cut -f3 > "$TEMP_FILE"
 
         git fetch origin
@@ -21,7 +21,7 @@ jobs:
         BRANCH="dependabot-$DATE"
         git checkout -b $BRANCH &> /dev/null
 
-        cat "$TEMP_FILE:" | while read branch
+        cat "$TEMP_FILE" | while read branch
         do
           git pull origin $branch
         done

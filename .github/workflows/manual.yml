@@ -25,7 +25,7 @@ jobs:
         done
 
         git push --force origin $BRANCH
-        gh pr create --title "Dependabot $DATE" --body "Contains all dependabot PRs from $DATE" || exit 0
+        gh pr create --title "Dependabot $DATE" --body "Contains all dependabot PRs from $DATE" || echo "A pull request exists already"
 
         echo "Pushing to staging"
         git checkout --track staging || git checkout -b staging

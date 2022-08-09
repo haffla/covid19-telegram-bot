@@ -21,7 +21,7 @@ jobs:
 
         gh pr list --app dependabot | cut -f3 | while read branch
         do
-          git merge --no-ff --no-edit $branch
+          git merge --no-ff --no-edit origin/$branch
         done
 
         git push origin $BRANCH

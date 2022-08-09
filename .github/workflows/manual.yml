@@ -1,0 +1,33 @@
+name: Manual workflow
+on: [workflow_dispatch, push]
+
+jobs:
+  check:
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup git config
+      run: |
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+    - name: Integrate dependabot PRs
+      run: |
+        git fetch --all --unshallow
+        DATE=$(date '+%Y-%m-%d')
+        BRANCH="dependabot-$DATE"
+        git checkout --track origin/$BRANCH || git checkout -b $BRANCH
+
+        gh pr list --app dependabot | cut -f3 | while read dependabot_branch
+        do
+          git rebase $BRANCH origin/$dependabot_branch
+        done
+
+        git push --force origin $BRANCH
+        gh pr create --title "Dependabot $DATE" --body "Contains all dependabot PRs from $DATE" || echo "A pull request exists already"
+
+        echo "Pushing to staging"
+        git checkout --track origin/staging || git checkout -b staging
+        git merge --ff --no-edit $BRANCH
+        git push origin staging

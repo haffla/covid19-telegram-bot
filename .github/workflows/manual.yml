@@ -13,20 +13,17 @@ jobs:
         git config user.name "GitHub Actions Bot"
         git config user.email "<>"
     - run: |
-        gh pr list --app dependabot | grep "^\d" | cut -f3 > $TEMP_FILE
-        cat $TEMP_FILE
-    - run: |
         TEMP_FILE=branches-to-deploy
-        gh pr list --app dependabot | grep "^\d" | cut -f3 > $TEMP_FILE
+        gh pr list --app dependabot | grep "^\d" | cut -f3 > "$TEMP_FILE"
 
-        [ -s $TEMP_FILE ] || { echo "No dependabot PRs found...";exit 0; }
+        [ -s "$TEMP_FILE" ] || { echo "No dependabot PRs found...";exit 0; }
 
         git fetch origin
         DATE=$(date '+%Y-%m-%d')
         BRANCH="dependabot-$DATE"
         git checkout -b $BRANCH &> /dev/null
 
-        cat $TEMP_FILE | while read branch
+        cat "$TEMP_FILE:" | while read branch
         do
           git pull origin $branch
         done

@@ -1,0 +1,16 @@
+name: Manual workflow
+on: workflow_dispatch
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - run: |
+        gh pr list
+    - run: |
+        git checkout -b some-branch
+        echo "foo" > some-file
+        git add .
+        git commit -m "Foo"
+        gh pr create --title "Foo" --body "Foo"

@@ -18,7 +18,7 @@ jobs:
         BRANCH="dependabot-$DATE"
         git checkout -b $BRANCH &> /dev/null
 
-        gh pr list --app dependabot | grep "^\d" | cut -f3 | while read branch
+        gh pr list --app dependabot | cut -f3 | while read branch
         do
           git pull origin $branch
         done

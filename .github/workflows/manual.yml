@@ -23,9 +23,11 @@ jobs:
 
         cat "$TEMP_FILE" | while read branch
         do
+          echo "Pulling $branch"
           git pull origin $branch
         done
 
+        echo "Pushing $BRANCH"
         git push origin $BRANCH
         gh pr create --title "Dependabot $DATE" --body "Contains all dependabot PRs from $DATE"
 

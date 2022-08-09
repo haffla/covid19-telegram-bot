@@ -28,6 +28,6 @@ jobs:
         gh pr create --title "Dependabot $DATE" --body "Contains all dependabot PRs from $DATE" || echo "A pull request exists already"
 
         echo "Pushing to staging"
-        git checkout --track staging || git checkout -b staging
+        git checkout --track origin/staging || git checkout -b staging
         git merge --no-ff --no-edit $BRANCH
         git push origin staging

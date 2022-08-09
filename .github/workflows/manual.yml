@@ -16,8 +16,6 @@ jobs:
         TEMP_FILE=branches-to-deploy
         gh pr list --app dependabot | grep "^\d" | cut -f3 > "$TEMP_FILE"
 
-        [ -s "$TEMP_FILE" ] || { echo "No dependabot PRs found...";exit 0; }
-
         git fetch origin
         DATE=$(date '+%Y-%m-%d')
         BRANCH="dependabot-$DATE"

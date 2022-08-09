@@ -17,7 +17,7 @@ jobs:
         git fetch --all --unshallow
         DATE=$(date '+%Y-%m-%d')
         BRANCH="dependabot-$DATE"
-        git checkout --track $BRANCH || git checkout -b $BRANCH
+        git checkout --track origin/$BRANCH || git checkout -b $BRANCH
 
         gh pr list --app dependabot | cut -f3 | while read branch
         do

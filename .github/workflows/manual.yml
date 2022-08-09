@@ -13,8 +13,9 @@ jobs:
         git config user.name "GitHub Actions Bot"
         git config user.email "<>"
     - run: |
-        TEMP_FILE=/tmp/branches-to-deploy
+        TEMP_FILE=branches-to-deploy
         gh pr list --app dependabot | grep "^\d" | cut -f3 > $TEMP_FILE
+        cat $TEMP_FILE
 
         [ -s $TEMP_FILE ] || { echo "No dependabot PRs found...";exit 0; }
 

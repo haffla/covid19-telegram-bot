@@ -15,7 +15,6 @@ jobs:
     - name: Integrate dependabot PRs
       run: |
         git fetch --all --unshallow
-        git checkout main
         DATE=$(date '+%Y-%m-%d')
         BRANCH="dependabot-$DATE"
         git checkout -b $BRANCH

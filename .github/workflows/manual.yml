@@ -17,7 +17,7 @@ jobs:
         git fetch --all --unshallow
         DATE=$(date '+%Y-%m-%d')
         BRANCH="dependabot-$DATE"
-        git checkout -b $BRANCH
+        git checkout --track $BRANCH || git checkout -b $BRANCH
 
         gh pr list --app dependabot | cut -f3 | while read branch
         do
@@ -28,7 +28,6 @@ jobs:
         gh pr create --title "Dependabot $DATE" --body "Contains all dependabot PRs from $DATE" || exit 0
 
         echo "Pushing to staging"
-        git checkout -b staging
-        git pull --no-ff --no-edit origin staging &> /dev/null || echo "Staging branch does not exist yet"
+        git checkout --track staging || git checkout -b staging
         git merge --no-ff --no-edit $BRANCH
         git push origin staging

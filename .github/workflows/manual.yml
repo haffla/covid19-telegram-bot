@@ -20,7 +20,7 @@ jobs:
 
         gh pr list --app dependabot | cut -f3 | while read branch
         do
-          git pull --ff-only origin $branch
+          git pull --ff origin $branch
         done
 
         git push origin $BRANCH

@@ -8,16 +8,31 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - run: |
-        gh pr list
     - name: Setup git config
       run: |
         git config user.name "GitHub Actions Bot"
         git config user.email "<>"
     - run: |
-        git checkout -b some-branch
-        echo "foo" > some-file
-        git add .
-        git commit -m "Foo"
-        git push origin some-branch
-        gh pr create --title "Foo" --body "Foo"
+        TEMP_FILE=/tmp/branches-to-deploy
+        gh pr list --app dependabot | grep "^\d" | cut -f3 > $TEMP_FILE
+
+        [ -s $TEMP_FILE ] || { echo "No dependabot PRs found...";exit 0; }
+
+        git fetch origin
+        DATE=$(date '+%Y-%m-%d')
+        BRANCH="dependabot-$DATE"
+        git checkout -b $BRANCH &> /dev/null
+
+        cat $TEMP_FILE | while read branch
+        do
+          git pull origin $branch
+        done
+
+        git push origin $BRANCH
+        gh pr create --title "Dependabot $DATE" --body "Contains all dependabot PRs from $DATE"
+
+        echo "Pushing to staging"
+        git checkout staging &> /dev/null || git switch -c staging origin/staging &> /dev/null
+        git pull origin staging &> /dev/null
+        git merge $BRANCH
+        git push origin staging

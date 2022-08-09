@@ -19,4 +19,5 @@ jobs:
         echo "foo" > some-file
         git add .
         git commit -m "Foo"
+        git push origin some-branch
         gh pr create --title "Foo" --body "Foo"

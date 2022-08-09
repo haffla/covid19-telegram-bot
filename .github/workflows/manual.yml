@@ -24,7 +24,7 @@ jobs:
           git pull --no-ff --no-edit origin $branch
         done
 
-        git push origin $BRANCH
+        git push --force origin $BRANCH
         gh pr create --title "Dependabot $DATE" --body "Contains all dependabot PRs from $DATE" || exit 0
 
         echo "Pushing to staging"

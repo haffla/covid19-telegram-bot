@@ -13,23 +13,18 @@ jobs:
         git config user.name "GitHub Actions Bot"
         git config user.email "<>"
     - run: |
-        TEMP_FILE=/tmp/branches-to-deploy
-        gh pr list --app dependabot | grep "^\d" | cut -f3 > "$TEMP_FILE"
-
         git fetch origin
         DATE=$(date '+%Y-%m-%d')
         BRANCH="dependabot-$DATE"
         git checkout -b $BRANCH &> /dev/null
 
-        cat "$TEMP_FILE" | while read branch
+        gh pr list --app dependabot | grep "^\d" | cut -f3 | while read branch
         do
-          echo "Pulling $branch"
           git pull origin $branch
         done
 
-        echo "Pushing $BRANCH"
         git push origin $BRANCH
-        gh pr create --title "Dependabot $DATE" --body "Contains all dependabot PRs from $DATE"
+        gh pr create --title "Dependabot $DATE" --body "Contains all dependabot PRs from $DATE" || exit 0
 
         echo "Pushing to staging"
         git checkout staging &> /dev/null || git switch -c staging origin/staging &> /dev/null

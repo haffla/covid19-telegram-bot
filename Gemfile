@@ -4,7 +4,7 @@ ruby "3.0.0"
 
 source "https://rubygems.org"
 
-gem "httparty", "~> 0.18.0"
+gem "httparty", "~> 0.21.0"
 gem "nokogiri", "~> 1.13"
 gem "rack", "~> 2.2"
 gem "redis", "~> 4.1"

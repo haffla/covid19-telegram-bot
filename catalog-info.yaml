@@ -1,0 +1,10 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: covid19-telegram-bot
+  annotations:
+    github.com/project-slug: haffla/covid19-telegram-bot
+spec:
+  type: other
+  lifecycle: unknown
+  owner: guests
